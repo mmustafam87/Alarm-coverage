@@ -1,0 +1,1885 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script>
+if(window.AndroidBridge){window.webkit={messageHandlers:{native:{postMessage:function(m){AndroidBridge.postMessage(JSON.stringify(m));}}}};}
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;-webkit-text-size-adjust:100%}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>EWIS Speaker Coverage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#EDF0EF; --panel:#FFFFFF; --field:#F5F7F6; --ink:#162024; --muted:#5A676C; --line:#D3DBDA;
+  --accent:#C3281F; --accent-soft:#F7E2DF; --ok:#2F8A55; --ok-soft:#DCF0E3; --warn:#9A6415; --warn-soft:#F8ECD6;
+  --bad:#B42318; --bad-soft:#F9E0DD; --scene:#E4E9E8; --rack:#5E6E75; --door:#D98E04; --wall3d:#7C8A90; --noise:#7A3FB0;
+  --sans:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --cond:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1517; --panel:#172023; --field:#11191B; --ink:#E3EAEA; --muted:#94A3A7; --line:#28363B;
+    --accent:#F0604F; --accent-soft:#3A1E1B; --ok:#58C487; --ok-soft:#173226; --warn:#E3A948; --warn-soft:#352914;
+    --bad:#F26B5E; --bad-soft:#3B1C19; --scene:#131B1E; --rack:#8FA2A9; --door:#F0AA2E; --wall3d:#9AAAB0; --noise:#B58AE8; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1517; --panel:#172023; --field:#11191B; --ink:#E3EAEA; --muted:#94A3A7; --line:#28363B;
+  --accent:#F0604F; --accent-soft:#3A1E1B; --ok:#58C487; --ok-soft:#173226; --warn:#E3A948; --warn-soft:#352914;
+  --bad:#F26B5E; --bad-soft:#3B1C19; --scene:#131B1E; --rack:#8FA2A9; --door:#F0AA2E; --wall3d:#9AAAB0; --noise:#B58AE8; color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{border:0;border-radius:0;border-right:1px solid var(--line);background:var(--field)}
+.seg button:last-child{border-right:0}
+.subh{font-family:var(--cond);font-weight:600;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:10px 12px 2px}
+.sched input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px}
+.sched input:disabled{opacity:.45}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.45;padding-inline:16px;padding-block:14px 32px}
+.wrap{max-width:1440px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+header.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.mark{width:34px;height:34px;border-radius:50%;background:var(--accent);display:grid;place-items:center;flex:none}
+.mark::after{content:"";width:12px;height:12px;border-radius:50%;border:2px solid var(--panel)}
+h1{font-family:var(--cond);font-weight:600;font-size:26px;letter-spacing:.01em;margin:0;line-height:1.1}
+header p{margin:2px 0 0;color:var(--muted);font-size:14px}
+.layout{display:grid;grid-template-columns:300px minmax(0,1fr);gap:14px;align-items:start}
+@media (max-width:980px){.layout{grid-template-columns:1fr}}
+aside.controls{display:flex;flex-direction:column;gap:10px}
+fieldset{border:1px solid var(--line);background:var(--panel);border-radius:8px;margin:0;padding:10px 12px 12px;display:flex;flex-direction:column;gap:7px;min-width:0}
+legend{font-family:var(--cond);font-weight:600;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:0 4px}
+.f{display:grid;grid-template-columns:1fr 92px 34px;align-items:center;gap:6px;font-size:14px}
+.f.wide{grid-template-columns:1fr}
+.f.sel{grid-template-columns:96px minmax(0,1fr)}
+.f.txt{grid-template-columns:96px minmax(0,1fr)}
+input[type=text]{font:inherit;font-size:14px;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:5px;padding:4px 6px;width:100%;min-width:0}
+.f em{font-style:normal;color:var(--muted);font-size:12px;font-family:var(--mono)}
+input[type=number],select{font:inherit;font-size:14px;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:5px;padding:4px 6px;width:100%;min-width:0}
+input[type=number]{font-family:var(--mono);font-size:13px;text-align:right}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.chk{display:flex;align-items:center;gap:8px;font-size:14px}
+.chk input{accent-color:var(--accent);width:16px;height:16px}
+.hint{font-size:12px;color:var(--muted);margin:0}
+button{font:inherit;font-size:14px;font-weight:500;border-radius:6px;border:1px solid var(--line);background:var(--field);color:var(--ink);padding:6px 11px;cursor:pointer}
+button:hover{border-color:var(--muted)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary:hover{filter:brightness(1.07)}
+button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+main{display:flex;flex-direction:column;gap:14px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;min-width:0}
+.card-h{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid var(--line)}
+.card-h h2{font-family:var(--cond);font-weight:600;font-size:17px;margin:0;letter-spacing:.02em}
+.card-h .tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.card-h select{width:auto}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.stat{background:var(--panel);padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.stat .k{font-family:var(--cond);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.stat .v{font-family:var(--mono);font-size:22px;font-weight:500;font-variant-numeric:tabular-nums;line-height:1.2}
+.stat .v small{font-size:12px;color:var(--muted);font-weight:400;margin-left:3px}
+.stat .s{font-size:12px;color:var(--muted)}
+.pill{display:inline-block;font-family:var(--cond);font-weight:600;font-size:13px;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:1px 9px;width:max-content}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+#three{height:clamp(300px,46vw,520px);position:relative;border-radius:0 0 8px 8px;overflow:hidden;background:var(--scene);touch-action:none}
+#three canvas{display:block}
+.fallback{padding:24px;color:var(--muted)}
+.overlay-hint{position:absolute;left:10px;bottom:8px;font-size:12px;color:var(--muted);pointer-events:none}
+.legend{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);font-family:var(--mono)}
+.legend .bar{width:180px;height:10px;border-radius:2px}
+.legend .sw{display:inline-flex;align-items:center;gap:5px}
+.legend .sw i{width:12px;height:12px;border-radius:2px;display:inline-block}
+.plan-row{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:14px;align-items:start}
+@media (max-width:1180px){.plan-row{grid-template-columns:1fr}}
+#planWrap{position:relative;padding:8px 10px 10px}
+#plan{display:block;width:100%;touch-action:none}
+#tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--panel);font-family:var(--mono);font-size:12px;padding:3px 7px;border-radius:4px;white-space:nowrap;transform:translate(10px,-120%)}
+.probe-b{padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.probe-b .big{font-family:var(--mono);font-size:30px;font-weight:500;line-height:1}
+.probe-b .big small{font-size:13px;color:var(--muted);margin-left:4px}
+.mono{font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-nums}
+.tbl-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{font-family:var(--cond);font-weight:600;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;padding:6px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:4px 6px;white-space:nowrap;border-bottom:1px solid var(--line);vertical-align:middle}
+td.n,th.n{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+tr.sel td{background:var(--accent-soft)}
+.sched input[type=number]{width:74px}
+.sched select{width:auto;max-width:230px}
+.sched td:first-child{font-family:var(--mono);cursor:pointer;color:var(--accent);font-weight:500}
+.del{padding:2px 8px;font-size:13px}
+.sched td.hint{color:var(--muted);font-family:var(--sans);font-weight:400;cursor:default}
+.warnTxt{color:var(--bad);font-size:12px}
+.notes{font-size:13px;color:var(--muted);max-width:80ch;margin:0}
+.notes a{color:var(--accent)}
+.custom[hidden]{display:none}
+.grp{display:flex;flex-direction:column;gap:7px}
+.dims{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--muted)}
+.dims input[type=number]{width:66px}
+.rowbtns{display:flex;gap:8px;flex-wrap:wrap}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="mark" aria-hidden="true"></div>
+    <div>
+      <h1>EWIS Speaker Coverage</h1>
+      <p>Sound pressure at ear height from Vigilant horns and speakers, checked against AS 1670.1 audibility limits.</p>
+    </div>
+    <div class="rowbtns" id="appBtns" style="margin-left:auto;align-items:center">
+      <button type="button" class="primary" id="pdfBtn">PDF report</button>
+      <button type="button" id="openDesign">Open design…</button>
+      <button type="button" id="saveDesign">Save design…</button>
+      <span class="hint" id="designMsg" aria-live="polite"></span>
+      <input type="file" id="openFile" accept=".json,application/json" hidden>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="controls">
+      <p class="hint" style="margin:0 2px">Keyboard: ↑ ↓ or Enter move between values in a column. Option/Alt + ↑ ↓ changes a value, and adding Shift changes it by 10 steps.</p>
+      <fieldset>
+        <legend>Room and ceiling</legend>
+        <label class="f"><span>Site length (X)</span><input id="L" type="number" step="0.5" min="2" value="40"><em>m</em></label>
+        <label class="f"><span>Site width (Y)</span><input id="W" type="number" step="0.025" min="2" value="22.125"><em>m</em></label>
+        <p class="hint">The site is the drawing area. Use Sketch floor on the plan to draw the floor outline. Without a sketch, the whole site is floor.</p>
+        <label class="f sel"><span>Ceiling</span><select id="ceilType"><option value="gable" selected>Gable (two slopes)</option><option value="mono">Mono-pitch (one slope)</option><option value="flat">Flat</option></select></label>
+        <div class="grp" id="ceilFlat" hidden>
+          <label class="f"><span>Ceiling height</span><input id="ceilH" type="number" step="0.05" min="2" value="7"><em>m</em></label>
+        </div>
+        <div class="grp" id="ceilGable">
+          <label class="f"><span>Height at eaves</span><input id="eave" type="number" step="0.05" min="2" value="7"><em>m</em></label>
+          <label class="f"><span>Height at apex</span><input id="apex" type="number" step="0.05" min="2" value="8.25"><em>m</em></label>
+          <label class="f sel"><span>Ridge runs</span><select id="ridgeDir"><option value="x">Along X</option><option value="y">Along Y</option></select></label>
+        </div>
+        <div class="grp" id="ceilMono" hidden>
+          <label class="f"><span>Low side height</span><input id="monoLo" type="number" step="0.05" min="2" value="6"><em>m</em></label>
+          <label class="f"><span>High side height</span><input id="monoHi" type="number" step="0.05" min="2" value="9"><em>m</em></label>
+          <label class="f sel"><span>Rises toward</span><select id="monoDir"><option value="+y">+Y (down the plan)</option><option value="-y">−Y (up the plan)</option><option value="+x">+X (right)</option><option value="-x">−X (left)</option></select></label>
+        </div>
+        <label class="f"><span>Ear height (AFL)</span><input id="ear" type="number" step="0.1" min="0.5" value="1.5"><em>m</em></label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Criteria</legend>
+        <label class="f"><span>Background noise</span><input id="amb" type="number" step="1" value="55"><em>dB(A)</em></label>
+        <p class="hint">Noise sources add to the background at each point. The target at each point is the higher of 65 dB(A) or the local ambient + 10 dB. The maximum is 105 dB(A).</p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Rack generator</legend>
+        <label class="f sel"><span>Rows run</span><select id="rackOri"><option value="length">Along the length</option><option value="width">Across the width</option></select></label>
+        <label class="f"><span>Rack rows</span><input id="rackN" type="number" step="1" min="0" value="4"><em>no.</em></label>
+        <label class="f"><span>Row depth</span><input id="rackD" type="number" step="0.1" min="0.3" value="2.4"><em>m</em></label>
+        <label class="f"><span>Rack height</span><input id="rackH" type="number" step="0.1" min="0.5" value="4.5"><em>m</em></label>
+        <label class="f"><span>End clearance</span><input id="rackEnd" type="number" step="0.5" min="0" value="3"><em>m</em></label>
+        <div class="rowbtns"><button class="primary" id="genRacks" type="button">Generate racks</button><button id="clearRacks" type="button">Remove all racks</button></div>
+        <p class="hint" id="rackInfo"></p>
+        <label class="f"><span>Rack shadow loss</span><input id="shadow" type="number" step="1" min="0" value="6"><em>dB</em></label>
+        <p class="hint">Generate racks replaces the current racks. Row depth and height also set the size of racks drawn on the plan. Racks can be drawn, dragged, rotated and removed on the plan and in the Storage racks table.</p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Acoustics</legend>
+        <label class="chk"><input id="reverb" type="checkbox"> Add reverberant field (Sabine)</label>
+        <label class="f"><span>Mean absorption α</span><input id="alpha" type="number" step="0.01" min="0.02" max="0.9" value="0.10"><em></em></label>
+        <p class="hint">Leave the reverberant field off for a conservative direct-sound check. Around 0.08 to 0.12 suits a metal-clad shed with a slab floor.</p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Layout generator</legend>
+        <label class="f sel"><span>Speaker</span><select id="gModel"></select></label>
+        <label class="f sel"><span>Tap</span><select id="gTap"></select></label>
+        <div class="custom" id="customBox" hidden>
+          <label class="f"><span>Sensitivity 1 W/1 m</span><input id="cSens" type="number" step="0.5" value="95"><em>dB</em></label>
+          <label class="f"><span>Coverage angle</span><input id="cDisp" type="number" step="5" min="20" max="180" value="90"><em>deg</em></label>
+        </div>
+        <label class="f"><span>Speaker rows</span><input id="gRows" type="number" step="1" min="1" max="6" value="2"><em>no.</em></label>
+        <label class="f"><span>Target spacing</span><input id="gSp" type="number" step="0.5" min="2" value="10"><em>m</em></label>
+        <label class="f"><span>Mounting height</span><input id="gZ" type="number" step="0.1" min="1" value="5.5"><em>m</em></label>
+        <label class="chk"><input id="gStag" type="checkbox" checked> Stagger alternate rows</label>
+        <label class="f sel"><span>Aim</span><select id="gAim">
+          <option value="alt">Along aisles, alternating</option>
+          <option value="one">Along aisles, one way</option>
+          <option value="centre">Toward centreline</option>
+          <option value="down">Straight down</option>
+        </select></label>
+        <label class="f"><span>Tilt below horizontal</span><input id="gTilt" type="number" step="5" min="0" max="90" value="25"><em>deg</em></label>
+        <div class="rowbtns"><button class="primary" id="gen" type="button">Generate layout</button></div>
+        <p class="hint" id="genInfo"></p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Report details</legend>
+        <label class="f txt"><span>Project</span><input id="rpProject" type="text" placeholder="Project name"></label>
+        <label class="f txt"><span>Area</span><input id="rpArea" type="text" value="Large parts storage room"></label>
+        <label class="f txt"><span>Prepared by</span><input id="rpBy" type="text" placeholder="Name, company"></label>
+        <label class="f txt"><span>Document ref</span><input id="rpRef" type="text" placeholder="e.g. FP-EWIS-001"></label>
+        <label class="f txt"><span>Revision</span><input id="rpRev" type="text" value="A"></label>
+        <label class="f txt"><span>Notes</span><input id="rpNotes" type="text" placeholder="Optional note for the report"></label>
+        <div class="rowbtns"><button class="primary" id="pdfBtn2" type="button">Create PDF report</button></div>
+        <p class="hint">The report covers the result, the design basis, plan heatmaps, the 3D view as currently shown, every schedule, and the worst-point breakdown. These details are saved with the design.</p>
+      </fieldset>
+    </aside>
+
+    <main>
+      <section class="summary" id="summary" aria-live="polite"></section>
+
+      <section class="card">
+        <div class="card-h">
+          <h2>3D model</h2>
+          <div class="tools"><span class="legend" id="legend3d"></span><button type="button" id="resetCam">Reset view</button></div>
+        </div>
+        <div id="three"><span class="overlay-hint">Drag to orbit, scroll to zoom, right-drag to pan</span></div>
+      </section>
+
+      <div class="plan-row">
+        <section class="card">
+          <div class="card-h">
+            <h2>Plan at ear height</h2>
+            <div class="tools">
+              <select id="mode" aria-label="Map mode"><option value="level">SPL dB(A)</option><option value="comp">Pass / fail</option><option value="margin">Margin over target</option><option value="noise">Ambient noise</option></select>
+              <select id="solo" aria-label="Speakers shown"></select>
+              <button type="button" id="worst">Go to worst point</button>
+            </div>
+          </div>
+          <div class="card-h">
+            <div class="seg" role="group" aria-label="Plan tool">
+              <button type="button" data-tool="probe" aria-pressed="true">Probe / move</button>
+              <button type="button" data-tool="floor" aria-pressed="false">Sketch floor</button>
+              <button type="button" data-tool="speaker" aria-pressed="false">Place speaker</button>
+              <button type="button" data-tool="wall" aria-pressed="false">Draw wall</button>
+              <button type="button" data-tool="door" aria-pressed="false">Add door</button>
+              <button type="button" data-tool="rack" aria-pressed="false">Draw rack</button>
+              <button type="button" data-tool="noise" aria-pressed="false">Add noise</button>
+              <button type="button" data-tool="erase" aria-pressed="false">Erase</button>
+            </div>
+            <select id="doorType" aria-label="Door type" hidden><option value="roller">Roller door</option><option value="personnel">Personnel door</option><option value="opening">Open doorway</option></select>
+            <select id="noiseType" aria-label="Noise source type" hidden></select>
+            <span id="floorCtl" class="rowbtns" hidden>
+              <select id="floorShape" aria-label="Sketch shape"><option value="rect">Rectangle</option><option value="poly">Lines (click corners)</option></select>
+              <select id="floorOp" aria-label="Add or cut"><option value="add">Add floor</option><option value="cut">Cut out</option></select>
+              <button type="button" id="floorFinish" hidden>Finish shape</button>
+              <button type="button" id="floorUndo" hidden>Undo point</button>
+            </span>
+          </div>
+          <div id="planWrap"><canvas id="plan"></canvas><div id="tip" hidden></div></div>
+          <div class="card-h" style="border-bottom:0;border-top:1px solid var(--line)"><span class="legend" id="legend2d"></span><span class="hint" id="toolHint">Click to probe. Drag a speaker to move it.</span></div>
+        </section>
+
+        <section class="card">
+          <div class="card-h"><h2>Probe point</h2></div>
+          <div class="probe-b" id="probe"></div>
+        </section>
+      </div>
+
+      <section class="card">
+        <div class="card-h">
+          <h2>Floor outline</h2>
+          <div class="tools">
+            <button type="button" id="addFloorRect">Add rectangle</button>
+            <button type="button" id="fitSite">Fit site to floor</button>
+            <button type="button" id="clearFloor">Use full site</button>
+          </div>
+        </div>
+        <p class="mono" id="floorInfo" style="padding:10px 12px 0;margin:0"></p>
+        <div class="tbl-wrap"><table class="sched"><thead><tr>
+          <th>No.</th><th>Shape</th><th>Mode</th><th>Dimensions (m)</th><th class="n">Area m²</th><th></th>
+        </tr></thead><tbody id="fbody"></tbody></table></div>
+        <p class="hint" style="padding:8px 12px 12px">Choose Sketch floor on the plan, then drag rectangles or click corners to draw lines. Lines snap to 0.1 m and to right angles. Click the first point, double-click, press Enter or tap Finish shape to close a line shape. Add shapes join together, and Cut out shapes remove floor for notches, voids or courtyards. For rectangles, X and Y give the corner nearest the origin and W × D the size. For line shapes, edit the corners as "x, y; x, y; …". The outline becomes the outside walls: sound doesn't travel outside the floor, and doors can be placed on any outline edge.</p>
+      </section>
+
+      <section class="card">
+        <div class="card-h">
+          <h2>Noise sources</h2>
+          <div class="tools">
+            <select id="noiseAddType" aria-label="Noise source type to add"></select>
+            <button type="button" id="addNoise">Add noise source</button>
+          </div>
+        </div>
+        <div class="tbl-wrap"><table class="sched"><thead><tr>
+          <th>No.</th><th>Type</th><th>Label</th><th class="n">X m</th><th class="n">Y m</th><th class="n">Height m</th><th class="n">Rotation °</th><th class="n">dB(A) at 1 m</th><th>Running</th><th></th>
+        </tr></thead><tbody id="nbody"></tbody></table></div>
+        <p class="hint" style="padding:8px 12px 12px">Preset levels are typical values for sizing only. Replace them with the manufacturer's sound pressure at 1 m, or with site measurements. Each source spreads at −6 dB per doubling of distance from 1 m, and loses the rack and wall reductions along the way. Untick Running for plant that is off when the alarm sounds. Fire pumps and smoke exhaust fans usually run during a fire. Each source appears as a 3D model of its equipment type, drawn to its real footprint on the plan. Height is the acoustic source height; it also sets the mounting height of wall and ceiling fans. Rotation turns the equipment (0° faces +X); the arrow on the plan shows which way fans and forklifts face.</p>
+      </section>
+
+      <section class="card">
+        <div class="card-h">
+          <h2>Walls, doors and racks</h2>
+          <div class="tools">
+            <button type="button" id="addWall">Add wall</button>
+            <button type="button" id="addDoor">Add door</button>
+            <button type="button" id="addRack">Add rack</button>
+            <button type="button" id="clearWalls">Remove all walls</button>
+          </div>
+        </div>
+        <div class="subh">Internal walls</div>
+        <div class="tbl-wrap"><table class="sched"><thead><tr>
+          <th>No.</th><th class="n">X1 m</th><th class="n">Y1 m</th><th class="n">X2 m</th><th class="n">Y2 m</th><th>Full height</th><th class="n">Height m</th><th class="n">Reduction dB</th><th></th><th></th>
+        </tr></thead><tbody id="wbody"></tbody></table></div>
+        <div class="subh">Doors</div>
+        <div class="tbl-wrap"><table class="sched"><thead><tr>
+          <th>No.</th><th>Wall</th><th>Type</th><th class="n">From start m</th><th class="n">Width m</th><th class="n">Height m</th><th>Open</th><th class="n">Closed reduction dB</th><th></th>
+        </tr></thead><tbody id="dbody"></tbody></table></div>
+        <div class="subh">Storage racks</div>
+        <div class="tbl-wrap"><table class="sched"><thead><tr>
+          <th>No.</th><th class="n">X m</th><th class="n">Y m</th><th class="n">Length along X m</th><th class="n">Depth along Y m</th><th class="n">Height m</th><th></th><th></th><th></th>
+        </tr></thead><tbody id="rbody"></tbody></table></div>
+        <p class="hint" style="padding:8px 12px 12px">X and Y give the rack corner nearest the origin. "From start" is measured from X = 0 on the long walls, from Y = 0 on the end walls, and from point 1 on an internal wall. A full-height wall runs up to the roof. A path through an internal wall loses the wall's reduction, and a path through a closed door loses the door's reduction. An open door loses nothing. Doors in the outside walls don't change the direct sound, but open ones lower the RT60.</p>
+      </section>
+
+      <section class="card">
+        <div class="card-h">
+          <h2>Speaker schedule</h2>
+          <div class="tools">
+            <button type="button" id="addSpk">Add speaker</button>
+            <button type="button" id="copy">Copy schedule</button>
+            <button type="button" id="clear">Clear all</button>
+            <span class="hint" id="copyMsg"></span>
+          </div>
+        </div>
+        <div class="tbl-wrap"><table class="sched"><thead><tr>
+          <th>No.</th><th>Model</th><th>Tap W</th><th class="n">X m</th><th class="n">Y m</th><th class="n">Height m</th><th class="n">Aim °</th><th class="n">Tilt °</th><th></th><th></th>
+        </tr></thead><tbody id="tbody"></tbody></table></div>
+      </section>
+
+      <p class="notes">How the levels are calculated: each speaker's level is its sensitivity plus 10·log(tap), less inverse-square spreading (−20·log r), less an off-axis loss of −6 dB at half the coverage angle (quadratic, capped at −25 dB). The shadow loss is applied wherever the straight path from speaker to ear passes through a rack. Internal walls reduce any path that passes through them below their top edge. Sound going over or around the ends of a wall (diffraction) is not modelled. Speakers are summed on an energy basis. Ambient noise at each point is the background plus every running noise source, and the target there is the higher of 65 dB(A) or ambient + 10. The optional reverberant field uses Sabine room constant R = Sα/(1−α). X runs along the length, Y across the width, and an aim of 0° points along +X. Sensitivities and taps are taken from the <a href="https://www.tycosafetyproducts-anz.com/BROCHURE/AudioDatVIG1902.pdf" target="_blank" rel="noopener">Vigilant Warning System Ancillaries: Audio datasheet</a> (Feb 2019). Where the datasheet gives a range, the coverage angle is averaged across 1 to 4 kHz. This is a design-stage SPL screen. It does not replace STI prediction under AS 1670.4 or measurement at commissioning.</p>
+    </main>
+  </div>
+</div>
+
+<script src="three.min.js"></script>
+<script>if(!window.THREE)document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>');</script>
+<script src="OrbitControls.js"></script>
+<script>if(window.THREE&&!THREE.OrbitControls)document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"><\/script>');</script>
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+const num=(id,d)=>{const v=parseFloat($(id).value);return Number.isFinite(v)?v:d;};
+const fmt=(v,d=1)=>Number.isFinite(v)?v.toFixed(d):"–";
+
+const CATALOG=[
+  {id:"EA0027",name:"EA0027/28 horn 10 W (AS 7240.24)",sens:98,taps:[1.25,2.5,5,7.5,10],disp:90},
+  {id:"EA0013",name:"EA0013 horn 10 W",sens:104,taps:[1.25,2.5,5,7.5,10],disp:110},
+  {id:"EA0016",name:"EA0016 horn 20 W",sens:108,taps:[5,7.5,10,15,20],disp:70},
+  {id:"EA0017",name:"EA0017 horn 30 W",sens:109,taps:[3.75,7.5,10,15,30],disp:130},
+  {id:"HP20",name:"HP-20EExIIN(T) Ex horn 20 W",sens:110,taps:[1.5,2,5,6,10,20],disp:72},
+  {id:"HS15",name:"HS-15EExIIN(T) Ex horn 15 W",sens:107,taps:[0.8,2,4,5,7.5,15],disp:95},
+  {id:"EA0031",name:"EA0031/32 200 mm surface 5 W (AS 7240.24)",sens:94,taps:[0.3,0.6,1.25,2.5,5],disp:180},
+  {id:"EA0029",name:"EA0029/30 100 mm surface 5 W (AS 7240.24)",sens:88,taps:[0.3,0.6,1.25,2.5,5],disp:180},
+  {id:"EA0033",name:"EA0033 200 mm surface 15 W",sens:95,taps:[1.25,2.5,5,10,15],disp:180},
+  {id:"EA0025",name:"EA0025/26 One-Shot ceiling 5 W (AS 7240.24)",sens:90,taps:[0.33,0.66,1.25,2.5,5],disp:180},
+  {id:"CUSTOM",name:"Custom speaker",sens:95,taps:[0.5,1,2,2.5,5,7.5,10,15,20,30],disp:90}
+];
+function getModel(id){
+  const m=CATALOG.find(c=>c.id===id)||CATALOG[0];
+  if(m.id==="CUSTOM") return Object.assign({},m,{sens:num("cSens",95),disp:Math.min(180,Math.max(20,num("cDisp",90)))});
+  return m;
+}
+function nearestTap(m,t){return m.taps.reduce((a,b)=>Math.abs(b-t)<Math.abs(a-t)?b:a,m.taps[0]);}
+
+const NATIVE=(window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.native)||null;
+const S={speakers:[],walls:[],doors:[],racks:[],noise:[],floor:[],floorDraft:null,polyDraft:null,polyCursor:null,noiseDrag:-1,probe:null,solo:-1,mode:"level",tool:"probe",sel:-1,drag:-1,draft:null,rackDraft:null,rackDrag:null};
+let G=null;
+const PERIM=[{id:"P0",name:"Long wall, Y = 0"},{id:"P1",name:"Long wall, Y = W"},{id:"P2",name:"End wall, X = 0"},{id:"P3",name:"End wall, X = L"}];
+const NOISE_T={
+  dpump:{name:"Diesel fire pump",lp:100,z:1},
+  epump:{name:"Electric pump set",lp:85,z:0.8},
+  jockey:{name:"Jockey pump",lp:75,z:0.6},
+  comp:{name:"Air compressor",lp:85,z:1},
+  fan:{name:"Exhaust fan",lp:80,z:4},
+  hvls:{name:"HVLS ceiling fan",lp:60,z:6},
+  ahu:{name:"Air handling unit",lp:75,z:1.5},
+  gen:{name:"Generator",lp:95,z:1.2},
+  fork:{name:"Forklift, diesel or LPG",lp:85,z:1.5},
+  efork:{name:"Forklift, electric",lp:75,z:1.5},
+  charger:{name:"Battery charger",lp:60,z:1.2},
+  machine:{name:"Workshop machinery",lp:95,z:1},
+  custom:{name:"Custom source",lp:80,z:1}
+};
+const DOOR_T={roller:{name:"Roller door",w:4,h:4.5,tl:15},personnel:{name:"Personnel door",w:0.92,h:2.04,tl:20},opening:{name:"Open doorway",w:2.4,h:3,tl:0}};
+function hostSeg(id,p){
+  let s;
+  if(id==="P0")s={x1:0,y1:0,x2:p.L,y2:0,full:true,perim:true};
+  else if(id==="P1")s={x1:0,y1:p.W,x2:p.L,y2:p.W,full:true,perim:true};
+  else if(id==="P2")s={x1:0,y1:0,x2:0,y2:p.W,full:true,perim:true};
+  else if(id==="P3")s={x1:p.L,y1:0,x2:p.L,y2:p.W,full:true,perim:true};
+  else if(String(id)[0]==="E"){const F=p.F||buildFloor(p.L,p.W),e=F.edges[+String(id).slice(1)-1];if(!e)return null;s={x1:e.x1,y1:e.y1,x2:e.x2,y2:e.y2,full:true,perim:true};}
+  else{const i=+String(id).slice(1),w=S.walls[i];if(!w)return null;s={x1:w.x1,y1:w.y1,x2:w.x2,y2:w.y2,full:w.full,h:w.h,tl:w.tl,perim:false,idx:i};}
+  s.len=Math.hypot(s.x2-s.x1,s.y2-s.y1);return s;
+}
+function isPerim(h){return h[0]==="P"||h[0]==="E";}
+function perimHosts(p){const F=p.F||buildFloor(p.L,p.W);return F.custom?F.edges.map((e,i)=>({id:"E"+(i+1),name:"Outside wall E"+(i+1)+" ("+e.len.toFixed(1)+" m)"})):PERIM;}
+function hostName(id){
+  if(id[0]==="P"){const h=PERIM.find(x=>x.id===id);return h?h.name:id;}
+  if(id[0]==="E"){const e=FLOOR&&FLOOR.edges[+id.slice(1)-1];return "Outside wall "+id+(e?" ("+e.len.toFixed(1)+" m)":"");}
+  return "Wall "+(+id.slice(1)+1);}
+function topAt(seg,s,p){const u=seg.len?s/seg.len:0,x=seg.x1+(seg.x2-seg.x1)*u,y=seg.y1+(seg.y2-seg.y1)*u,r=roofAt(p,y,x);return seg.full?r:Math.min(seg.h,r);}
+function inwardN(seg,p){const ux=(seg.x2-seg.x1)/seg.len,uy=(seg.y2-seg.y1)/seg.len;let nx=-uy,ny=ux;const mx=(seg.x1+seg.x2)/2,my=(seg.y1+seg.y2)/2;
+  const F=p.F;if(F&&F.custom){if(!F.inside(mx+nx*0.25,my+ny*0.25)&&F.inside(mx-nx*0.25,my-ny*0.25)){nx=-nx;ny=-ny;}}
+  else{const cx=(p.fb?(p.fb.x0+p.fb.x1)/2:p.L/2),cy=(p.fb?(p.fb.y0+p.fb.y1)/2:p.W/2);if(nx*(cx-mx)+ny*(cy-my)<0){nx=-nx;ny=-ny;}}
+  return [nx,ny];}
+function clampDoor(d,seg,p){
+  const w=Math.max(0.3,Math.min(d.w,seg.len)),off=Math.max(0,Math.min(d.off,seg.len-w));
+  const top=Math.min(topAt(seg,off,p),topAt(seg,off+w,p));
+  return {off,w,h:Math.max(0.3,Math.min(d.h,top)),open:d.type==="opening"||d.open,tl:d.type==="opening"?0:d.tl,type:d.type};
+}
+
+/* ---------- floor outline and ceiling ---------- */
+let FLOOR=null;
+function polyContains(pts,x,y){let c=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){const xi=pts[i][0],yi=pts[i][1],xj=pts[j][0],yj=pts[j][1];if(((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi))c=!c;}return c;}
+function shapeContains(sh,x,y){return sh.kind==="rect"?(x>=sh.x&&x<=sh.x+sh.w&&y>=sh.y&&y<=sh.y+sh.h):(!!sh.pts&&sh.pts.length>=3&&polyContains(sh.pts,x,y));}
+function shapeArea(sh){if(sh.kind==="rect")return sh.w*sh.h;let a=0;const P=sh.pts||[];for(let i=0,j=P.length-1;i<P.length;j=i++)a+=(P[j][0]+P[i][0])*(P[j][1]-P[i][1]);return Math.abs(a/2);}
+function buildFloor(L,W){
+  const key=JSON.stringify(S.floor)+"|"+L+"|"+W;
+  if(FLOOR&&FLOOR.key===key)return FLOOR;
+  const r=0.1,nx=Math.max(1,Math.round(L/r)),ny=Math.max(1,Math.round(W/r)),m=new Uint8Array(nx*ny);
+  const custom=S.floor.length>0,adds=S.floor.filter(sh=>sh.op!=="cut");
+  if(!adds.length)m.fill(1);
+  for(const sh of S.floor){
+    const v=sh.op==="cut"?0:1;let bx0,bx1,by0,by1;
+    if(sh.kind==="rect"){bx0=sh.x;bx1=sh.x+sh.w;by0=sh.y;by1=sh.y+sh.h;}
+    else{if(!sh.pts||sh.pts.length<3)continue;const xs=sh.pts.map(q=>q[0]),ys=sh.pts.map(q=>q[1]);bx0=Math.min(...xs);bx1=Math.max(...xs);by0=Math.min(...ys);by1=Math.max(...ys);}
+    const i0=Math.max(0,Math.floor(bx0/r)),i1=Math.min(nx-1,Math.ceil(bx1/r)),j0=Math.max(0,Math.floor(by0/r)),j1=Math.min(ny-1,Math.ceil(by1/r));
+    for(let j=j0;j<=j1;j++){const y=(j+.5)*r;for(let i=i0;i<=i1;i++){if(shapeContains(sh,(i+.5)*r,y))m[j*nx+i]=v;}}
+  }
+  const at=(i,j)=>(i>=0&&j>=0&&i<nx&&j<ny)?m[j*nx+i]:0;
+  let cnt=0,x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;
+  for(let j=0;j<ny;j++)for(let i=0;i<nx;i++)if(m[j*nx+i]){cnt++;if(i<x0)x0=i;if(i>x1)x1=i;if(j<y0)y0=j;if(j>y1)y1=j;}
+  const segs=[];
+  for(let j=0;j<=ny;j++){let s0=-1;for(let i=0;i<=nx;i++){const e=i<nx&&at(i,j-1)!==at(i,j);if(e&&s0<0)s0=i;if(!e&&s0>=0){segs.push({x1:s0*r,y1:j*r,x2:i*r,y2:j*r});s0=-1;}}}
+  for(let i=0;i<=nx;i++){let s0=-1;for(let j=0;j<=ny;j++){const e=j<ny&&at(i-1,j)!==at(i,j);if(e&&s0<0)s0=j;if(!e&&s0>=0){segs.push({x1:i*r,y1:s0*r,x2:i*r,y2:j*r});s0=-1;}}}
+  segs.forEach(q=>q.len=Math.hypot(q.x2-q.x1,q.y2-q.y1));
+  const runs=[];for(let j=0;j<ny;j++){let s0=-1;for(let i=0;i<=nx;i++){const v=i<nx&&m[j*nx+i];if(v&&s0<0)s0=i;if(!v&&s0>=0){runs.push([j,s0,i]);s0=-1;}}}
+  const edges=custom?segs.filter(q=>q.len>=0.8).map(q=>({x1:q.x1,y1:q.y1,x2:q.x2,y2:q.y2,len:q.len})):[];
+  if(custom)S.floor.forEach(sh=>{if(sh.kind!=="poly"||sh.op==="cut"||!sh.pts||sh.pts.length<3)return;
+    for(let k=0;k<sh.pts.length;k++){const a=sh.pts[k],b=sh.pts[(k+1)%sh.pts.length];
+      if(Math.abs(a[0]-b[0])>0.05&&Math.abs(a[1]-b[1])>0.05){const len=Math.hypot(b[0]-a[0],b[1]-a[1]);if(len>=0.8)edges.push({x1:a[0],y1:a[1],x2:b[0],y2:b[1],len,sloped:true});}}});
+  edges.sort((a,b)=>((a.y1+a.y2)-(b.y1+b.y2))||((a.x1+a.x2)-(b.x1+b.x2)));
+  FLOOR={key,r,nx,ny,m,custom,segs,runs,edges,area:cnt*r*r,
+    bbox:cnt?{x0:x0*r,x1:(x1+1)*r,y0:y0*r,y1:(y1+1)*r}:{x0:0,x1:L,y0:0,y1:W},
+    inside:(x,y)=>at(Math.floor(x/r),Math.floor(y/r))===1};
+  return FLOOR;
+}
+function crossesOutside(x0,y0,x1,y1){
+  const F=FLOOR;if(!F||!F.custom)return false;
+  const d=Math.hypot(x1-x0,y1-y0);if(d<0.4)return false;
+  const n=Math.ceil(d/0.3);for(let k=1;k<n;k++){const t=k/n;if(!F.inside(x0+(x1-x0)*t,y0+(y1-y0)*t))return true;}
+  return false;
+}
+function makeCeil(c,fb){
+  if(c.type==="flat")return ()=>c.h;
+  if(c.type==="mono"){const ax=c.dir[1],neg=c.dir[0]==="-",a0=ax==="x"?fb.x0:fb.y0,a1=ax==="x"?fb.x1:fb.y1,span=Math.max(0.1,a1-a0);
+    return (x,y)=>{let t=Math.min(1,Math.max(0,((ax==="x"?x:y)-a0)/span));if(neg)t=1-t;return c.lo+(c.hi-c.lo)*t;};}
+  const alongX=c.ridge!=="y",mid=alongX?(fb.y0+fb.y1)/2:(fb.x0+fb.x1)/2,half=Math.max(0.05,(alongX?fb.y1-fb.y0:fb.x1-fb.x0)/2);
+  return (x,y)=>c.eave+(c.apex-c.eave)*(1-Math.min(1,Math.abs((alongX?y:x)-mid)/half));
+}
+function ceilDesc(p){const c=p.ceilCfg;
+  if(c.type==="flat")return "Flat ceiling at "+fmt(c.h,2)+" m";
+  if(c.type==="mono")return "Mono-pitch roof rising from "+fmt(c.lo,2)+" m to "+fmt(c.hi,2)+" m toward "+c.dir.replace("-","−").toUpperCase();
+  return "Gable roof, "+fmt(c.eave,2)+" m at the eaves and "+fmt(c.apex,2)+" m at the apex, ridge along "+(c.ridge==="y"?"Y":"X");}
+function params(){
+  const L=Math.max(2,num("L",40)),W=Math.max(2,num("W",22.125));
+  const ct=$("ceilType").value;let cfg,hMin,hMax,rise=0,span=1;
+  if(ct==="flat"){const h=Math.max(2,num("ceilH",7));cfg={type:"flat",h};hMin=hMax=h;}
+  else if(ct==="mono"){const lo=Math.max(2,num("monoLo",6)),hi=Math.max(lo,num("monoHi",9));cfg={type:"mono",lo,hi,dir:$("monoDir").value};hMin=lo;hMax=hi;}
+  else{const e=Math.max(2,num("eave",7)),a=Math.max(e,num("apex",8.25));cfg={type:"gable",eave:e,apex:a,ridge:$("ridgeDir").value};hMin=e;hMax=a;}
+  const F=buildFloor(L,W),fb=F.bbox,ceil=makeCeil(cfg,fb);
+  if(cfg.type==="mono"){rise=cfg.hi-cfg.lo;span=cfg.dir[1]==="x"?fb.x1-fb.x0:fb.y1-fb.y0;}
+  else if(cfg.type==="gable"){rise=cfg.apex-cfg.eave;span=(cfg.ridge==="y"?fb.x1-fb.x0:fb.y1-fb.y0)/2;}
+  const slopeF=1/Math.cos(Math.atan2(rise,Math.max(0.1,span)));
+  const eave=hMin,apex=hMax;
+  const ear=Math.min(Math.max(0.3,num("ear",1.5)),eave-0.1);
+  return {L,W,eave,apex,ear,ceilCfg:cfg,ceil,F,fb,slopeF,amb:num("amb",55),
+    rackOri:$("rackOri").value,rackN:Math.max(0,Math.round(num("rackN",4))),
+    rackD:Math.max(0.3,num("rackD",2.4)),rackH:Math.min(eave,Math.max(0.5,num("rackH",4.5))),rackEnd:Math.max(0,num("rackEnd",3)),
+    shadow:Math.max(0,num("shadow",6)),reverb:$("reverb").checked,alpha:Math.min(0.9,Math.max(0.02,num("alpha",0.1)))};
+}
+function roofAt(p,y,x){return p.ceil(x==null?(p.fb.x0+p.fb.x1)/2:x,y);}
+function buildRacks(p){
+  return S.racks.filter(r=>r.l>0.05&&r.d>0.05).map((r,i)=>({x0:r.x,x1:r.x+r.l,y0:r.y,y1:r.y+r.d,h:Math.min(r.h,p.eave),idx:i}));
+}
+const r2=v=>Math.round(v*100)/100;
+function generateRacks(){
+  const p=params(),out=[];
+  if(p.rackN<1){S.racks=[];$("rackInfo").textContent="No rows set, so all racks were removed.";return;}
+  const fb=p.fb,F=p.F,along=p.rackOri==="length";
+  const sp0=along?fb.y0:fb.x0,span=along?fb.y1-fb.y0:fb.x1-fb.x0,rn0=along?fb.x0:fb.y0,rn1=along?fb.x1:fb.y1;
+  const a=(span-p.rackN*p.rackD)/(p.rackN+1);
+  if(a<0.5){$("rackInfo").textContent="Those racks don't fit. Reduce the rows or the row depth.";return;}
+  const ok=(u,v)=>{const X=along?u:v,Y=along?v:u;return F.inside(X,Y);};
+  for(let k=0;k<p.rackN;k++){
+    const s0=sp0+a+k*(a+p.rackD),s1=s0+p.rackD;
+    // walk along the row and keep stretches where the whole rack depth is on the floor
+    let start=null;const step=0.1,pieces=[];
+    for(let u=rn0;u<=rn1+1e-6;u+=step){const inside=u<rn1&&ok(u+step/2,s0+0.05)&&ok(u+step/2,s1-0.05)&&ok(u+step/2,(s0+s1)/2);
+      if(inside&&start===null)start=u;if(!inside&&start!==null){pieces.push([start,u]);start=null;}}
+    pieces.forEach(([u0,u1])=>{const r0=u0+p.rackEnd,r1=u1-p.rackEnd;if(r1-r0<1)return;
+      out.push(along?{x:r2(r0),y:r2(s0),l:r2(r1-r0),d:p.rackD,h:p.rackH}:{x:r2(s0),y:r2(r0),l:p.rackD,d:r2(r1-r0),h:p.rackH});});
+  }
+  S.racks=out;$("rackInfo").textContent=out.length+" racks placed with "+a.toFixed(2)+" m aisles"+(F.custom?", trimmed to the floor outline.":".");
+}
+
+function prep(s,i){
+  const m=getModel(s.model),yaw=s.yaw*Math.PI/180,tilt=s.tilt*Math.PI/180;
+  const d={x:Math.cos(tilt)*Math.cos(yaw),y:Math.cos(tilt)*Math.sin(yaw),z:-Math.sin(tilt)};
+  const disp=Math.min(180,m.disp),Q=2/(1-Math.cos(disp/2*Math.PI/180));
+  const base=m.sens+10*Math.log10(Math.max(0.01,s.tap));
+  return {i,s,m,d,th:Math.max(10,disp/2),base,Lw:base-10*Math.log10(Q)+10*Math.log10(4*Math.PI),x:s.x,y:s.y,z:s.z};
+}
+function blocked(q,x,y,h,racks){
+  const dx=x-q.x,dy=y-q.y,dz=h-q.z;
+  for(let n=0;n<racks.length;n++){
+    const b=racks[n];
+    if(q.x>b.x0&&q.x<b.x1&&q.y>b.y0&&q.y<b.y1&&q.z<b.h)continue;
+    let t0=0,t1=1,ta,tb,t;
+    if(Math.abs(dx)<1e-9){if(q.x<b.x0||q.x>b.x1)continue;}else{ta=(b.x0-q.x)/dx;tb=(b.x1-q.x)/dx;if(ta>tb){t=ta;ta=tb;tb=t;}if(ta>t0)t0=ta;if(tb<t1)t1=tb;if(t0>t1)continue;}
+    if(Math.abs(dy)<1e-9){if(q.y<b.y0||q.y>b.y1)continue;}else{ta=(b.y0-q.y)/dy;tb=(b.y1-q.y)/dy;if(ta>tb){t=ta;ta=tb;tb=t;}if(ta>t0)t0=ta;if(tb<t1)t1=tb;if(t0>t1)continue;}
+    if(Math.abs(dz)<1e-9){if(q.z<0||q.z>b.h)continue;}else{ta=(0-q.z)/dz;tb=(b.h-q.z)/dz;if(ta>tb){t=ta;ta=tb;tb=t;}if(ta>t0)t0=ta;if(tb<t1)t1=tb;if(t0>t1)continue;}
+    return true;
+  }
+  return false;
+}
+const NOWALL={loss:0,n:0,door:0};
+function wallLoss(q,x,y,h,env){
+  let loss=0,n=0,door=0;const rx=x-q.x,ry=y-q.y;
+  for(const w of env.walls){
+    const sx=w.x2-w.x1,sy=w.y2-w.y1,den=rx*sy-ry*sx;if(Math.abs(den)<1e-9)continue;
+    const ax=w.x1-q.x,ay=w.y1-q.y,t=(ax*sy-ay*sx)/den,u=(ax*ry-ay*rx)/den;
+    if(t<=0.001||t>=0.999||u<0||u>1)continue;
+    const z=q.z+t*(h-q.z),s=u*w.len;
+    if(z>=topAt(w,s,env.p))continue;
+    let d=null;for(const dd of w.doors){if(s>=dd.off&&s<=dd.off+dd.w&&z<=dd.h){d=dd;break;}}
+    if(d){door++;if(!d.open)loss+=d.tl;}else{n++;loss+=w.tl;}
+  }
+  return {loss:Math.min(loss,60),n,door};
+}
+function direct(q,x,y,h,env){
+  const vx=x-q.x,vy=y-q.y,vz=h-q.z,r=Math.sqrt(vx*vx+vy*vy+vz*vz),rr=Math.max(r,0.5);
+  let c=(vx*q.d.x+vy*q.d.y+vz*q.d.z)/(r||1);c=Math.max(-1,Math.min(1,c));
+  const ang=Math.acos(c)*180/Math.PI,off=-Math.min(25,6*Math.pow(ang/q.th,2));
+  const blk=env.racks.length?blocked(q,x,y,h,env.racks):false;
+  const wl=env.walls.length?wallLoss(q,x,y,h,env):NOWALL;
+  const out=env.F&&env.F.custom?crossesOutside(q.x,q.y,x,y):false;
+  return {lvl:q.base-20*Math.log10(rr)+off-(blk?env.shadow:0)-wl.loss-(out?40:0),r,ang,off,blk,wl,out};
+}
+function inRack(racks,x,y){for(const b of racks)if(x>b.x0&&x<b.x1&&y>b.y0&&y<b.y1)return true;return false;}
+
+function compute(){
+  const p=params(),racks=buildRacks(p),qs=S.speakers.map(prep);
+  if(S.solo>=qs.length)S.solo=-1;
+  const act=S.solo>=0?[qs[S.solo]]:qs;
+  const step=Math.max(0.2,Math.sqrt(p.L*p.W/14000));
+  const nx=Math.max(4,Math.round(p.L/step)),ny=Math.max(4,Math.round(p.W/step)),dx=p.L/nx,dy=p.W/ny;
+  const walls=[];
+  S.walls.forEach((w,i)=>{const seg=hostSeg("W"+i,p);if(!seg||seg.len<0.05)return;seg.doors=S.doors.filter(d=>d.host==="W"+i).map(d=>clampDoor(d,seg,p));walls.push(seg);});
+  const F=p.F,env={racks,walls,shadow:p.shadow,p,F};
+  let V=0;const fr=F.r;
+  for(const [j,i0,i1] of F.runs){const yy=(j+.5)*fr;for(let i=i0;i<i1;i+=10){const i2=Math.min(i1,i+10);V+=(i2-i)*fr*fr*p.ceil((i+i2)/2*fr,yy);}}
+  let Sa=F.area*(1+p.slopeF);
+  F.segs.forEach(q=>{Sa+=q.len*(p.ceil(q.x1,q.y1)+p.ceil(q.x2,q.y2))/2;});
+  walls.forEach(w=>{Sa+=2*w.len*(topAt(w,0,p)+topAt(w,w.len,p))/2;});
+  let openA=0;S.doors.forEach(d=>{if(!isPerim(d.host))return;const seg=hostSeg(d.host,p),cd=clampDoor(d,seg,p);if(cd.open)openA+=cd.w*cd.h;});
+  const A=Sa*p.alpha+openA*(1-p.alpha),R=A/(1-Math.min(0.95,A/Sa)),RT=0.161*V/A;
+  let revLin=0;if(p.reverb)for(const q of act)revLin+=Math.pow(10,q.Lw/10)*4/R;
+  const nzs=S.noise.map((n,i)=>({i,n,x:n.x,y:n.y,z:n.z})).filter(o=>o.n.on);
+  let nRev=0;if(p.reverb)for(const o of nzs)nRev+=Math.pow(10,(o.n.lp+8)/10)*4/R;
+  const bgLin=Math.pow(10,p.amb/10);
+  const lv=new Float32Array(nx*ny),rk=new Uint8Array(nx*ny),am=new Float32Array(nx*ny),rq=new Float32Array(nx*ny);
+  let mn=Infinity,mx=-Infinity,mxI=-1,wm=Infinity,mnI=-1,tot=0,pass=0,over=0,vis=0,rqMin=Infinity,rqMax=-Infinity,rqMaxI=-1;
+  for(let j=0;j<ny;j++){const y=(j+.5)*dy;for(let i=0;i<nx;i++){
+    const x=(i+.5)*dx,k=j*nx+i;
+    if(F.custom&&!F.inside(x,y)){lv[k]=NaN;am[k]=NaN;rq[k]=NaN;rk[k]=2;continue;}
+    let sum=revLin;
+    for(let n=0;n<act.length;n++){sum+=Math.pow(10,direct(act[n],x,y,p.ear,env).lvl/10);}
+    const L=sum>0?10*Math.log10(sum):-Infinity;lv[k]=L;
+    let nl=bgLin+nRev;for(let n=0;n<nzs.length;n++)nl+=Math.pow(10,noiseDirect(nzs[n],x,y,p.ear,env).lvl/10);
+    const A0=10*Math.log10(nl),Rq=Math.max(65,A0+10);am[k]=A0;rq[k]=Rq;
+    const r=inRack(racks,x,y)?1:0;rk[k]=r;
+    if(!r){tot++;if(L>=Rq)pass++;if(L>105)over++;if(Rq>105)vis++;
+      if(L<mn)mn=L;if(L>mx){mx=L;mxI=k;}if(L-Rq<wm){wm=L-Rq;mnI=k;}
+      if(Rq<rqMin)rqMin=Rq;if(Rq>rqMax){rqMax=Rq;rqMaxI=k;}}
+  }}
+  G={p,racks,walls,env,openA,qs,act,nzs,nRev,bgLin,nx,ny,dx,dy,lv,rk,am,rq,RT,V,Sa,revLin,
+     stats:{mn,mx,mnI,mxI,wm,rqMin,rqMax,rqMaxI,passPct:tot?pass/tot*100:0,overPct:tot?over/tot*100:0,visPct:tot?vis/tot*100:0}};
+}
+function noiseDirect(o,x,y,h,env){
+  const r=Math.hypot(x-o.x,y-o.y,h-o.z),rr=Math.max(r,1);
+  const blk=env.racks.length?blocked(o,x,y,h,env.racks):false;
+  const wl=env.walls.length?wallLoss(o,x,y,h,env):NOWALL;
+  const out=env.F&&env.F.custom?crossesOutside(o.x,o.y,x,y):false;
+  return {lvl:o.n.lp-20*Math.log10(rr)-(blk?env.shadow:0)-wl.loss-(out?40:0),r,blk,wl,out};
+}
+function ambientAt(x,y){
+  const p=G.p,rows=G.nzs.map(o=>Object.assign({o},noiseDirect(o,x,y,p.ear,G.env)));
+  let s=G.bgLin+G.nRev;rows.forEach(r=>s+=Math.pow(10,r.lvl/10));
+  const amb=10*Math.log10(s);return {amb,req:Math.max(65,amb+10),rows};
+}
+function cellIdx(x,y){const i=Math.min(G.nx-1,Math.max(0,Math.floor(x/G.dx))),j=Math.min(G.ny-1,Math.max(0,Math.floor(y/G.dy)));return j*G.nx+i;}
+function probeAt(x,y){
+  const p=G.p;const rows=G.qs.map(q=>Object.assign({q},direct(q,x,y,p.ear,G.env)));
+  let sum=G.revLin;const act=new Set(G.act.map(q=>q.i));
+  rows.forEach(r=>{r.active=act.has(r.q.i);if(r.active)sum+=Math.pow(10,r.lvl/10);});
+  return {rows,total:sum>0?10*Math.log10(sum):-Infinity};
+}
+
+const STOPS=[[45,[38,56,104]],[55,[40,108,170]],[65,[38,158,148]],[75,[122,188,80]],[85,[238,196,62]],[95,[234,124,46]],[105,[198,44,38]],[115,[108,28,92]]];
+function lvlColor(v){
+  if(!Number.isFinite(v))return STOPS[0][1];
+  if(v<=STOPS[0][0])return STOPS[0][1];
+  for(let i=1;i<STOPS.length;i++){if(v<=STOPS[i][0]){const[a,ca]=STOPS[i-1],[b,cb]=STOPS[i],t=(v-a)/(b-a);return[ca[0]+(cb[0]-ca[0])*t,ca[1]+(cb[1]-ca[1])*t,ca[2]+(cb[2]-ca[2])*t];}}
+  return STOPS[STOPS.length-1][1];
+}
+function compColor(v,req){
+  if(v>105)return[122,63,160];
+  if(v>=req){const t=Math.min(1,(v-req)/15);return[70-20*t,170-30*t,105-15*t];}
+  const t=Math.min(1,(req-v)/10);return[228-30*t,120-70*t,100-60*t];
+}
+function marginColor(m){
+  const lerp=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];
+  if(m<0)return lerp([245,205,120],[190,40,40],Math.min(1,-m/10));
+  return lerp([245,205,120],[30,130,85],Math.min(1,m/15));
+}
+function colorAt(k){
+  if(G.rk[k]===2)return null;
+  const v=G.lv[k];let c;
+  if(S.mode==="comp")c=compColor(v,G.rq[k]);
+  else if(S.mode==="noise")c=lvlColor(G.am[k]);
+  else if(S.mode==="margin")c=marginColor(v-G.rq[k]);
+  else c=lvlColor(v);
+  if(G.rk[k])c=[c[0]*.45+128*.55,c[1]*.45+134*.55,c[2]*.45+138*.55];
+  return c;
+}
+let heatCanvas=document.createElement("canvas");
+function paintHeat(){
+  const hc=document.createElement("canvas");hc.width=G.nx;hc.height=G.ny;
+  const cx=hc.getContext("2d"),img=cx.createImageData(G.nx,G.ny);
+  for(let k=0;k<G.nx*G.ny;k++){const c=colorAt(k);if(!c){img.data[k*4+3]=0;continue;}img.data[k*4]=c[0];img.data[k*4+1]=c[1];img.data[k*4+2]=c[2];img.data[k*4+3]=255;}
+  cx.putImageData(img,0,0);heatCanvas=hc;
+}
+function legendHTML(){
+  if(S.mode==="comp")return '<span class="sw"><i style="background:rgb(205,70,62)"></i>Below target</span><span class="sw"><i style="background:rgb(60,155,98)"></i>Meets target</span><span class="sw"><i style="background:rgb(122,63,160)"></i>Over 105</span>';
+  if(S.mode==="margin")return '<span>−10</span><span class="bar" style="background:linear-gradient(90deg,rgb(190,40,40) 0%,rgb(245,205,120) 40%,rgb(30,130,85) 100%)"></span><span>+15 dB over target</span>';
+  const g=STOPS.map(s=>"rgb("+s[1].join(",")+") "+((s[0]-45)/70*100).toFixed(1)+"%").join(",");
+  return '<span>45</span><span class="bar" style="background:linear-gradient(90deg,'+g+')"></span><span>115 dB(A)'+(S.mode==="noise"?" ambient":"")+'</span>';
+}
+
+function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+const plan=$("plan"),pctx=plan.getContext("2d");let PM=null;
+const REPORT_COLORS={"--field":"#EEF1F0","--ink":"#162024","--muted":"#5A676C","--panel":"#FFFFFF","--accent":"#C3281F","--door":"#D98E04","--noise":"#7A3FB0","--mono":"Menlo, Consolas, \"DejaVu Sans Mono\", monospace"};
+function drawPlan(opt){
+  opt=opt||{};const rep=!!opt.ctx,p=G.p;
+  const col=rep?(n=>REPORT_COLORS[n]||"#000"):css;
+  const w=rep?opt.w:$("planWrap").clientWidth-20;
+  const ml=38,mr=10,mt=10,mb=28,pw=Math.max(100,w-ml-mr),sc=pw/p.L,ph=p.W*sc,h=ph+mt+mb;
+  const dpr=rep?opt.dpr:Math.min(2,window.devicePixelRatio||1);
+  let c;
+  if(rep){opt.canvas.width=Math.round(w*dpr);opt.canvas.height=Math.round(h*dpr);c=opt.ctx;c.setTransform(dpr,0,0,dpr,0,0);c.fillStyle="#fff";c.fillRect(0,0,w,h);}
+  else{plan.width=Math.round(w*dpr);plan.height=Math.round(h*dpr);plan.style.height=h+"px";c=pctx;c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,w,h);PM={ml,mt,sc,pw,ph};}
+  const mark=rep?opt.marker:S.probe;
+  const FF=p.F;
+  if(FF.custom){c.fillStyle=col("--field");c.fillRect(ml,mt,pw,ph);c.save();c.beginPath();c.rect(ml,mt,pw,ph);c.clip();c.strokeStyle="rgba(90,103,108,.25)";c.lineWidth=1;
+    for(let t=-ph;t<pw;t+=9){c.beginPath();c.moveTo(ml+t,mt+ph);c.lineTo(ml+t+ph,mt);c.stroke();}c.restore();}
+  c.imageSmoothingEnabled=!FF.custom;c.drawImage(rep?opt.heat:heatCanvas,ml,mt,pw,ph);c.imageSmoothingEnabled=true;
+  const ink=col("--ink"),muted=col("--muted"),panel=col("--panel"),accent=col("--accent");
+  c.font="11px "+col("--mono");c.fillStyle=muted;c.strokeStyle="rgba(255,255,255,.35)";c.lineWidth=1;
+  const stepM=p.L>60?10:5;
+  c.textAlign="center";c.textBaseline="top";
+  for(let x=0;x<=p.L+1e-6;x+=stepM){const X=ml+x*sc;c.beginPath();c.moveTo(X,mt);c.lineTo(X,mt+ph);c.stroke();c.fillText(x.toFixed(0),X,mt+ph+5);}
+  c.fillText("m",ml+pw+2,mt+ph+5);
+  c.textAlign="right";c.textBaseline="middle";
+  for(let y=0;y<=p.W+1e-6;y+=stepM){const Y=mt+y*sc;c.beginPath();c.moveTo(ml,Y);c.lineTo(ml+pw,Y);c.stroke();c.fillText(y.toFixed(0),ml-5,Y);}
+  c.strokeStyle="rgba(20,28,32,.55)";c.lineWidth=1;
+  for(const b of G.racks){
+    const X=ml+b.x0*sc,Y=mt+b.y0*sc,RW=(b.x1-b.x0)*sc,RH=(b.y1-b.y0)*sc;
+    c.save();c.beginPath();c.rect(X,Y,RW,RH);c.clip();c.strokeStyle="rgba(20,28,32,.28)";
+    for(let t=-RH;t<RW;t+=7){c.beginPath();c.moveTo(X+t,Y+RH);c.lineTo(X+t+RH,Y);c.stroke();}
+    c.restore();c.strokeStyle="rgba(20,28,32,.6)";c.lineWidth=1;c.strokeRect(X+.5,Y+.5,RW-1,RH-1);
+    if(!rep&&S.rackDrag&&S.rackDrag.i===b.idx){c.strokeStyle="#fff";c.lineWidth=2;c.strokeRect(X-1,Y-1,RW+2,RH+2);c.lineWidth=1;}
+    if(RW>18&&RH>10){c.fillStyle="rgba(20,28,32,.85)";c.font="600 10px "+col("--mono");c.textAlign="left";c.textBaseline="top";c.fillText("R"+(b.idx+1),X+3,Y+2);}
+  }
+  if(!rep&&S.rackDraft){const d=S.rackDraft,x0=Math.min(d.x1,d.x2),y0=Math.min(d.y1,d.y2),w0=Math.abs(d.x2-d.x1),h0=Math.abs(d.y2-d.y1);
+    c.setLineDash([5,3]);c.strokeStyle="#111";c.lineWidth=1.5;c.strokeRect(ml+x0*sc,mt+y0*sc,w0*sc,h0*sc);c.setLineDash([]);
+    c.fillStyle="#111";c.font="11px "+col("--mono");c.textAlign="left";c.textBaseline="bottom";c.fillText(w0.toFixed(1)+" × "+h0.toFixed(1)+" m",ml+x0*sc,mt+y0*sc-3);}
+  if(!FF.custom){c.strokeStyle=ink;c.lineWidth=1.5;c.strokeRect(ml,mt,pw,ph);}
+  else{
+    c.setLineDash([3,4]);c.strokeStyle=muted;c.lineWidth=1;c.strokeRect(ml,mt,pw,ph);c.setLineDash([]);
+    c.strokeStyle=ink;c.lineWidth=2.4;c.lineCap="square";c.beginPath();FF.segs.forEach(q=>{c.moveTo(ml+q.x1*sc,mt+q.y1*sc);c.lineTo(ml+q.x2*sc,mt+q.y2*sc);});c.stroke();c.lineCap="butt";
+    // edge dimensions
+    const dimEdge=(x1,y1,x2,y2,len,label)=>{const mx=(x1+x2)/2,my=(y1+y2)/2,ux=(x2-x1)/len,uy=(y2-y1)/len;let nx=-uy,ny=ux;
+      if(FF.inside(mx+nx*0.3,my+ny*0.3)){nx=-nx;ny=-ny;}
+      const t=label||(fmt(len,2)+" m");let X=ml+mx*sc+nx*11,Y=mt+my*sc+ny*11;
+      c.font="600 10px "+col("--mono");const tw=c.measureText(t).width;
+      if(X-tw/2<ml||X+tw/2>ml+pw||Y<mt+6||Y>mt+ph-6){X=ml+mx*sc-nx*11;Y=mt+my*sc-ny*11;}
+      c.font="600 10px "+col("--mono");c.textAlign="center";c.textBaseline="middle";c.lineWidth=3;c.strokeStyle="rgba(255,255,255,.9)";c.strokeText(t,X,Y);c.fillStyle=ink;c.fillText(t,X,Y);};
+    FF.segs.forEach(q=>{if(q.len>=1.5)dimEdge(q.x1,q.y1,q.x2,q.y2,q.len);});
+    S.floor.forEach(sh=>{if(sh.kind!=="poly"||sh.op==="cut"||!sh.pts)return;sh.pts.forEach((a,k)=>{const b=sh.pts[(k+1)%sh.pts.length];
+      if(Math.abs(a[0]-b[0])>0.05&&Math.abs(a[1]-b[1])>0.05){const len=Math.hypot(b[0]-a[0],b[1]-a[1]);
+        c.strokeStyle=ink;c.lineWidth=2.4;c.beginPath();c.moveTo(ml+a[0]*sc,mt+a[1]*sc);c.lineTo(ml+b[0]*sc,mt+b[1]*sc);c.stroke();
+        if(len>=1.5)dimEdge(a[0],a[1],b[0],b[1],len);}});});
+    if(!rep&&S.tool==="door")FF.edges.forEach((q,k)=>{const mx=(q.x1+q.x2)/2,my=(q.y1+q.y2)/2;const X=ml+mx*sc,Y=mt+my*sc;
+      c.font="600 10px "+col("--mono");c.fillStyle=col("--door");c.textAlign="center";c.textBaseline="middle";c.fillText("E"+(k+1),X,Y);});
+  }
+  if(!rep&&S.floorDraft){const d=S.floorDraft,x0=Math.min(d.x1,d.x2),y0=Math.min(d.y1,d.y2),w0=Math.abs(d.x2-d.x1),h0=Math.abs(d.y2-d.y1);
+    c.fillStyle=$("floorOp").value==="cut"?"rgba(190,40,40,.15)":"rgba(30,130,85,.15)";c.fillRect(ml+x0*sc,mt+y0*sc,w0*sc,h0*sc);
+    c.setLineDash([6,4]);c.strokeStyle="#111";c.lineWidth=1.6;c.strokeRect(ml+x0*sc,mt+y0*sc,w0*sc,h0*sc);c.setLineDash([]);
+    c.font="600 11px "+col("--mono");c.fillStyle="#111";c.textAlign="center";c.textBaseline="bottom";c.fillText(fmt(w0,2)+" m",ml+(x0+w0/2)*sc,mt+y0*sc-3);
+    c.save();c.translate(ml+(x0+w0)*sc+4,mt+(y0+h0/2)*sc);c.textAlign="left";c.textBaseline="middle";c.fillText(fmt(h0,2)+" m",0,0);c.restore();}
+  if(!rep&&S.polyDraft&&S.polyDraft.pts.length){const P=S.polyDraft.pts,cur=S.polyCursor;
+    c.strokeStyle="#111";c.lineWidth=1.8;c.beginPath();c.moveTo(ml+P[0][0]*sc,mt+P[0][1]*sc);P.slice(1).forEach(q=>c.lineTo(ml+q[0]*sc,mt+q[1]*sc));c.stroke();
+    if(cur){const l=P[P.length-1];c.setLineDash([6,4]);c.beginPath();c.moveTo(ml+l[0]*sc,mt+l[1]*sc);c.lineTo(ml+cur.x*sc,mt+cur.y*sc);c.stroke();c.setLineDash([]);
+      const len=Math.hypot(cur.x-l[0],cur.y-l[1]);c.font="600 11px "+col("--mono");c.fillStyle="#111";c.textAlign="left";c.textBaseline="bottom";
+      c.fillText(fmt(len,2)+" m",ml+cur.x*sc+8,mt+cur.y*sc-6);}
+    P.forEach((q,k)=>{c.beginPath();c.arc(ml+q[0]*sc,mt+q[1]*sc,k?3.5:6,0,Math.PI*2);c.fillStyle=k?"#111":"#fff";c.fill();c.strokeStyle="#111";c.lineWidth=1.5;c.stroke();});
+    for(let k=1;k<P.length;k++){const a=P[k-1],b=P[k],len=Math.hypot(b[0]-a[0],b[1]-a[1]);if(len<1)continue;
+      c.font="10px "+col("--mono");c.fillStyle="#111";c.textAlign="center";c.textBaseline="bottom";c.fillText(fmt(len,2),ml+(a[0]+b[0])/2*sc,mt+(a[1]+b[1])/2*sc-4);}}
+  const doorC=col("--door"),P2=(seg,s)=>{const u=seg.len?s/seg.len:0;return[ml+(seg.x1+(seg.x2-seg.x1)*u)*sc,mt+(seg.y1+(seg.y2-seg.y1)*u)*sc];};
+  const line=(a,b)=>{c.beginPath();c.moveTo(a[0],a[1]);c.lineTo(b[0],b[1]);c.stroke();};
+  const inward=seg=>inwardN(seg,p);
+  c.lineCap="butt";
+  G.walls.forEach(w=>{
+    const ds=w.doors.slice().sort((a,b)=>a.off-b.off);let cur=0;
+    c.strokeStyle=ink;c.lineWidth=Math.max(3,0.2*sc);
+    ds.forEach(d=>{if(d.off>cur)line(P2(w,cur),P2(w,d.off));cur=Math.max(cur,d.off+d.w);});
+    if(cur<w.len)line(P2(w,cur),P2(w,w.len));
+    const m=P2(w,Math.min(w.len*0.5,1.2)),n=inward(w);
+    c.fillStyle=ink;c.font="600 11px "+col("--mono");c.textAlign="center";c.textBaseline="middle";
+    c.fillText("W"+(w.idx+1),m[0]+n[0]*13,m[1]+n[1]*13);
+  });
+  S.doors.forEach((d,di)=>{
+    const seg=hostSeg(d.host,p);if(!seg||seg.len<0.05)return;const cd=clampDoor(d,seg,p);
+    const a=P2(seg,cd.off),b=P2(seg,cd.off+cd.w);
+    c.setLineDash([]);c.strokeStyle="#111";c.lineWidth=cd.open?4:8;line(a,b);
+    c.strokeStyle=doorC;c.lineWidth=cd.open?2:5;if(cd.open)c.setLineDash([4,3]);line(a,b);c.setLineDash([]);
+    const n=inward(seg),mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;
+    c.fillStyle=ink;c.font="600 10px "+col("--mono");c.textAlign="center";c.textBaseline="middle";
+    c.fillText("D"+(di+1),mx+n[0]*12,my+n[1]*12);
+  });
+  if(!rep&&S.draft){c.setLineDash([6,4]);c.strokeStyle=ink;c.lineWidth=3;line([ml+S.draft.x1*sc,mt+S.draft.y1*sc],[ml+S.draft.x2*sc,mt+S.draft.y2*sc]);c.setLineDash([]);
+    c.fillStyle=ink;c.font="11px "+col("--mono");c.textAlign="left";c.fillText(Math.hypot(S.draft.x2-S.draft.x1,S.draft.y2-S.draft.y1).toFixed(1)+" m",ml+S.draft.x2*sc+8,mt+S.draft.y2*sc-8);}
+  if(mark){
+    const X=ml+mark.x*sc,Y=mt+mark.y*sc;c.strokeStyle="#fff";c.lineWidth=3;
+    c.beginPath();c.moveTo(X-9,Y);c.lineTo(X+9,Y);c.moveTo(X,Y-9);c.lineTo(X,Y+9);c.stroke();
+    c.strokeStyle="#111";c.lineWidth=1.3;c.beginPath();c.moveTo(X-9,Y);c.lineTo(X+9,Y);c.moveTo(X,Y-9);c.lineTo(X,Y+9);c.stroke();
+    c.beginPath();c.arc(X,Y,5,0,Math.PI*2);c.stroke();
+  }
+  const noiseC=col("--noise");
+  S.noise.forEach(n=>{
+    const fp=EQUIP_FP[n.type]||EQUIP_FP.custom;
+    c.save();c.translate(ml+n.x*sc,mt+n.y*sc);c.rotate((n.rot||0)*Math.PI/180);c.beginPath();
+    if(fp[2]==="circle")c.arc(0,0,fp[0]/2*sc,0,Math.PI*2);else c.rect(-fp[0]/2*sc,-fp[1]/2*sc,fp[0]*sc,fp[1]*sc);
+    c.globalAlpha=n.on?.16:.08;c.fillStyle=noiseC;c.fill();c.globalAlpha=n.on?.9:.5;c.strokeStyle=noiseC;c.lineWidth=1.3;
+    if(!n.on||fp[2]==="circle")c.setLineDash([4,3]);c.stroke();c.setLineDash([]);
+    if(n.type==="fan"||n.type==="fork"||n.type==="efork"){c.globalAlpha=.9;c.beginPath();const fx=fp[0]/2*sc;c.moveTo(fx,0);c.lineTo(fx+9,0);c.stroke();
+      c.beginPath();c.moveTo(fx+9,0);c.lineTo(fx+4,-4);c.lineTo(fx+4,4);c.closePath();c.fillStyle=noiseC;c.fill();}
+    c.restore();c.globalAlpha=1;
+  });
+  S.noise.forEach((n,i)=>{
+    const X=ml+n.x*sc,Y=mt+n.y*sc,r=9;
+    c.beginPath();c.moveTo(X,Y-r);c.lineTo(X+r,Y);c.lineTo(X,Y+r);c.lineTo(X-r,Y);c.closePath();
+    c.fillStyle=n.on?noiseC:"rgba(255,255,255,.85)";c.fill();c.strokeStyle=n.on?"#fff":noiseC;c.lineWidth=1.5;c.stroke();
+    if(n.on){c.strokeStyle=noiseC;c.globalAlpha=.55;c.lineWidth=1.2;[14,19].forEach(rr=>{c.beginPath();c.arc(X,Y,rr,0,Math.PI*2);c.stroke();});c.globalAlpha=1;}
+    c.fillStyle=n.on?"#fff":noiseC;c.font="600 9px "+col("--mono");c.textAlign="center";c.textBaseline="middle";c.fillText("N"+(i+1),X,Y+.5);
+  });
+  G.qs.forEach((q,i)=>{
+    const X=ml+q.x*sc,Y=mt+q.y*sc,dim=!rep&&S.solo>=0&&S.solo!==i;
+    c.globalAlpha=dim?.35:1;
+    if(q.s.tilt<85){const len=18;const ex=X+Math.cos(q.s.yaw*Math.PI/180)*len,ey=Y+Math.sin(q.s.yaw*Math.PI/180)*len;
+      c.strokeStyle="#111";c.lineWidth=2;c.beginPath();c.moveTo(X,Y);c.lineTo(ex,ey);c.stroke();
+      const a=Math.atan2(ey-Y,ex-X);c.fillStyle="#111";c.beginPath();c.moveTo(ex,ey);c.lineTo(ex-6*Math.cos(a-.5),ey-6*Math.sin(a-.5));c.lineTo(ex-6*Math.cos(a+.5),ey-6*Math.sin(a+.5));c.closePath();c.fill();}
+    if(!rep&&i===S.sel){c.strokeStyle="#fff";c.lineWidth=3;c.beginPath();c.arc(X,Y,11,0,Math.PI*2);c.stroke();}
+    c.fillStyle=accent;c.strokeStyle="#fff";c.lineWidth=1.5;c.beginPath();c.arc(X,Y,7.5,0,Math.PI*2);c.fill();c.stroke();
+    c.fillStyle="#fff";c.font="600 10px "+col("--mono");c.textAlign="center";c.textBaseline="middle";c.fillText(String(i+1),X,Y+.5);
+    c.globalAlpha=1;
+  });
+  if(rep)return h;
+  plan.style.cursor=S.tool==="probe"?"default":"crosshair";
+}
+function snapPt(x,y,p){
+  const s=v=>Math.round(v*10)/10;x=s(Math.min(p.L,Math.max(0,x)));y=s(Math.min(p.W,Math.max(0,y)));
+  if(x<0.4)x=0;if(x>p.L-0.4)x=p.L;if(y<0.4)y=0;if(y>p.W-0.4)y=p.W;return{x,y};
+}
+function addDoorAt(x,y){
+  const p=params();let best=null,bd=Infinity;
+  const ids=perimHosts(p).map(h=>h.id).concat(S.walls.map((w,i)=>"W"+i));
+  ids.forEach(id=>{const seg=hostSeg(id,p);if(!seg||seg.len<0.3)return;
+    const ux=(seg.x2-seg.x1)/seg.len,uy=(seg.y2-seg.y1)/seg.len;
+    const s=Math.max(0,Math.min(seg.len,(x-seg.x1)*ux+(y-seg.y1)*uy));
+    const d=Math.hypot(seg.x1+ux*s-x,seg.y1+uy*s-y);if(d<bd){bd=d;best={id,s,seg};}});
+  if(!best||bd>1.5){$("toolHint").textContent="Click closer to a wall to add a door.";return;}
+  const type=$("doorType").value,t=DOOR_T[type],w=Math.min(t.w,best.seg.len);
+  S.doors.push({host:best.id,type,off:+Math.max(0,Math.min(best.seg.len-w,best.s-w/2)).toFixed(2),w,h:t.h,open:type==="opening",tl:t.tl});
+  renderDoors();schedule(true);
+}
+function planXY(e){const r=plan.getBoundingClientRect();const x=(e.clientX-r.left-PM.ml)/PM.sc,y=(e.clientY-r.top-PM.mt)/PM.sc;return{x,y,px:e.clientX-r.left,py:e.clientY-r.top};}
+function hitSpeaker(pt){let best=-1,bd=12/PM.sc;G.qs.forEach((q,i)=>{const d=Math.hypot(q.x-pt.x,q.y-pt.y);if(d<bd){bd=d;best=i;}});return best;}
+plan.addEventListener("pointerdown",e=>{
+  if(!PM)return;const pt=planXY(e),p=G.p;
+  if(S.tool==="floor"){const a=snapPt(pt.x,pt.y,p);
+    if($("floorShape").value==="rect"){S.floorDraft={x1:a.x,y1:a.y,x2:a.x,y2:a.y};plan.setPointerCapture(e.pointerId);drawPlan();return;}
+    if(!S.polyDraft)S.polyDraft={pts:[]};const q=polySnap(a),P=S.polyDraft;
+    if(P.pts.length>=3){const f=P.pts[0];if(Math.hypot(q.x-f[0],q.y-f[1])<0.01){finishPoly();return;}}
+    P.pts.push([q.x,q.y]);S.polyCursor=q;updateFloorCtl();drawPlan();return;}
+  if(S.tool==="wall"){const a=snapPt(pt.x,pt.y,p);S.draft={x1:a.x,y1:a.y,x2:a.x,y2:a.y};plan.setPointerCapture(e.pointerId);drawPlan();return;}
+  if(S.tool==="door"){addDoorAt(pt.x,pt.y);return;}
+  if(S.tool==="erase"){eraseAt(pt);return;}
+  if(pt.x<0||pt.y<0||pt.x>p.L||pt.y>p.W)return;
+  if(S.tool==="speaker"){addSpeakerAt(pt.x,pt.y);return;}
+  if(S.tool==="noise"){addNoiseAt(pt.x,pt.y,$("noiseType").value);return;}
+  if(S.tool==="rack"){const a=snapPt(pt.x,pt.y,p);S.rackDraft={x1:a.x,y1:a.y,x2:a.x,y2:a.y};plan.setPointerCapture(e.pointerId);drawPlan();return;}
+  const h=hitSpeaker(pt);
+  if(h>=0){S.sel=h;S.drag=h;plan.setPointerCapture(e.pointerId);renderTable();schedule();return;}
+  const ni=hitNoise(pt);
+  if(ni>=0){S.noiseDrag=ni;plan.setPointerCapture(e.pointerId);return;}
+  const ri=hitRack(pt);
+  if(ri>=0){const r=S.racks[ri];S.rackDrag={i:ri,ox:pt.x-r.x,oy:pt.y-r.y,moved:false};plan.setPointerCapture(e.pointerId);drawPlan();return;}
+  S.probe={x:pt.x,y:pt.y};schedule(true);
+});
+function hitNoise(pt){let best=-1,bd=12/PM.sc;S.noise.forEach((n,i)=>{const d=Math.hypot(n.x-pt.x,n.y-pt.y);if(d<bd){bd=d;best=i;}});return best;}
+function hitRack(pt){for(let i=S.racks.length-1;i>=0;i--){const r=S.racks[i];if(pt.x>=r.x&&pt.x<=r.x+r.l&&pt.y>=r.y&&pt.y<=r.y+r.d)return i;}return -1;}
+function segDist(x,y,x1,y1,x2,y2){const dx=x2-x1,dy=y2-y1,l2=dx*dx+dy*dy;const t=l2?Math.max(0,Math.min(1,((x-x1)*dx+(y-y1)*dy)/l2)):0;return Math.hypot(x1+dx*t-x,y1+dy*t-y);}
+function removeWall(i){
+  S.walls.splice(i,1);
+  S.doors=S.doors.filter(x=>x.host!=="W"+i).map(x=>{if(x.host[0]==="W"&&+x.host.slice(1)>i)x.host="W"+(+x.host.slice(1)-1);return x;});
+  renderWalls();renderDoors();schedule(true);
+}
+function removeSpeaker(i){S.speakers.splice(i,1);if(S.sel===i)S.sel=-1;else if(S.sel>i)S.sel--;if(S.solo===i)S.solo=-1;else if(S.solo>i)S.solo--;renderTable();schedule(true);}
+function eraseAt(pt){
+  const p=params(),tol=Math.max(0.5,10/PM.sc),say=t=>{$("toolHint").textContent=t;};
+  const sp=hitSpeaker(pt);if(sp>=0){removeSpeaker(sp);say("Removed speaker "+(sp+1)+".");return;}
+  const ni=hitNoise(pt);if(ni>=0){S.noise.splice(ni,1);renderNoise();schedule(true);say("Removed noise source N"+(ni+1)+".");return;}
+  let best=-1,bd=tol;
+  S.doors.forEach((d,i)=>{const seg=hostSeg(d.host,p);if(!seg||seg.len<0.05)return;const cd=clampDoor(d,seg,p),ux=(seg.x2-seg.x1)/seg.len,uy=(seg.y2-seg.y1)/seg.len;
+    const dist=segDist(pt.x,pt.y,seg.x1+ux*cd.off,seg.y1+uy*cd.off,seg.x1+ux*(cd.off+cd.w),seg.y1+uy*(cd.off+cd.w));if(dist<bd){bd=dist;best=i;}});
+  if(best>=0){S.doors.splice(best,1);renderDoors();schedule(true);say("Removed door D"+(best+1)+".");return;}
+  bd=tol;S.walls.forEach((w,i)=>{const dist=segDist(pt.x,pt.y,w.x1,w.y1,w.x2,w.y2);if(dist<bd){bd=dist;best=i;}});
+  if(best>=0){removeWall(best);say("Removed wall W"+(best+1)+" and any doors in it.");return;}
+  const ri=hitRack(pt);if(ri>=0){S.racks.splice(ri,1);renderRacks();schedule(true);say("Removed rack R"+(ri+1)+".");return;}
+  for(let i=S.floor.length-1;i>=0;i--){if(shapeContains(S.floor[i],pt.x,pt.y)){changeFloor(()=>{S.floor.splice(i,1);});say("Removed floor shape F"+(i+1)+".");return;}}
+  say("Nothing to remove there. Click a speaker, noise source, door, wall, rack or floor shape.");
+}
+plan.addEventListener("pointermove",e=>{
+  if(!PM)return;const pt=planXY(e),p=G.p,tip=$("tip");
+  if(S.draft){const b=snapPt(pt.x,pt.y,p),d=S.draft;let x2=b.x,y2=b.y;
+    const dx=Math.abs(x2-d.x1),dy=Math.abs(y2-d.y1);if(dx<0.15*dy)x2=d.x1;else if(dy<0.15*dx)y2=d.y1;
+    d.x2=x2;d.y2=y2;tip.hidden=true;drawPlan();return;}
+  if(S.floorDraft){const b=snapPt(pt.x,pt.y,p);S.floorDraft.x2=b.x;S.floorDraft.y2=b.y;tip.hidden=true;drawPlan();return;}
+  if(S.tool==="floor"&&S.polyDraft){S.polyCursor=polySnap(snapPt(pt.x,pt.y,p));tip.hidden=true;drawPlan();return;}
+  if(S.rackDraft){const b=snapPt(pt.x,pt.y,p);S.rackDraft.x2=b.x;S.rackDraft.y2=b.y;tip.hidden=true;drawPlan();return;}
+  if(S.rackDrag){const r=S.racks[S.rackDrag.i];
+    r.x=r2(Math.min(p.L-r.l,Math.max(0,Math.round((pt.x-S.rackDrag.ox)*10)/10)));r.y=r2(Math.min(p.W-r.d,Math.max(0,Math.round((pt.y-S.rackDrag.oy)*10)/10)));
+    S.rackDrag.moved=true;syncRack(S.rackDrag.i);schedule(true);tip.hidden=true;return;}
+  if(S.noiseDrag>=0){const n=S.noise[S.noiseDrag];n.x=r2(Math.min(p.L,Math.max(0,pt.x)));n.y=r2(Math.min(p.W,Math.max(0,pt.y)));syncNoise(S.noiseDrag);schedule(true);tip.hidden=true;return;}
+  if(S.drag>=0){const s=S.speakers[S.drag];s.x=+Math.min(p.L,Math.max(0,pt.x)).toFixed(2);s.y=+Math.min(p.W,Math.max(0,pt.y)).toFixed(2);syncRow(S.drag);schedule();tip.hidden=true;return;}
+  if(pt.x<0||pt.y<0||pt.x>p.L||pt.y>p.W){tip.hidden=true;return;}
+  const i=Math.min(G.nx-1,Math.floor(pt.x/G.dx)),j=Math.min(G.ny-1,Math.floor(pt.y/G.dy)),v=G.lv[j*G.nx+i];
+  tip.hidden=false;tip.style.left=(pt.px+10)+"px";tip.style.top=(pt.py+8)+"px";
+  const kk=j*G.nx+i;if(G.rk[kk]===2){tip.hidden=false;tip.textContent="Outside the floor area · x "+fmt(pt.x)+" y "+fmt(pt.y);return;}tip.textContent=fmt(v)+" dB(A) · ambient "+fmt(G.am[kk],0)+" · target "+fmt(G.rq[kk],0)+" · x "+fmt(pt.x)+" y "+fmt(pt.y)+(G.rk[kk]?" · rack":"");
+});
+plan.addEventListener("pointerleave",()=>{$("tip").hidden=true;});
+function endDrag(){
+  if(S.draft){const d=S.draft,p=params();S.draft=null;
+    if(Math.hypot(d.x2-d.x1,d.y2-d.y1)>=0.5){S.walls.push({x1:d.x1,y1:d.y1,x2:d.x2,y2:d.y2,full:true,h:Math.min(4,p.eave),tl:25});renderWalls();renderDoors();schedule(true);}
+    else drawPlan();return;}
+  if(S.floorDraft){const d=S.floorDraft;S.floorDraft=null;
+    const x0=Math.min(d.x1,d.x2),y0=Math.min(d.y1,d.y2),w=Math.abs(d.x2-d.x1),h=Math.abs(d.y2-d.y1);
+    if(w>=0.5&&h>=0.5)changeFloor(()=>{S.floor.push({kind:"rect",x:r2(x0),y:r2(y0),w:r2(w),h:r2(h),op:$("floorOp").value});});else drawPlan();return;}
+  if(S.rackDraft){const d=S.rackDraft,p=params();S.rackDraft=null;
+    let x0=Math.min(d.x1,d.x2),y0=Math.min(d.y1,d.y2),l=Math.abs(d.x2-d.x1),dd=Math.abs(d.y2-d.y1);
+    if(l<0.3||dd<0.3){l=Math.min(10,p.L);dd=p.rackD;x0=Math.max(0,Math.min(p.L-l,d.x1-l/2));y0=Math.max(0,Math.min(p.W-dd,d.y1-dd/2));}
+    S.racks.push({x:r2(x0),y:r2(y0),l:r2(l),d:r2(dd),h:p.rackH});renderRacks();schedule(true);return;}
+  if(S.rackDrag){S.rackDrag=null;schedule(true);return;}
+  if(S.noiseDrag>=0){S.noiseDrag=-1;schedule(true);return;}
+  if(S.drag>=0){S.drag=-1;schedule(true);}
+}
+plan.addEventListener("pointerup",endDrag);plan.addEventListener("pointercancel",endDrag);
+
+function renderSummary(){
+  const st=G.stats,p=G.p,n=S.speakers.length;
+  const load=S.speakers.reduce((a,s)=>a+s.tap,0),amp=load*1.25;
+  let pill;
+  if(!n)pill='<span class="pill bad">No speakers</span>';
+  else if(st.passPct>=99.95&&st.overPct===0)pill='<span class="pill ok">Meets target</span>';
+  else if(st.passPct>=95&&st.overPct===0)pill='<span class="pill warn">Marginal</span>';
+  else pill='<span class="pill bad">Does not meet</span>';
+  const at=k=>"x "+fmt((k%G.nx+.5)*G.dx)+", y "+fmt((Math.floor(k/G.nx)+.5)*G.dy)+" m";
+  const mnP=st.mnI>=0?"at "+at(st.mnI)+" · lowest SPL "+fmt(st.mn):"";
+  const onN=S.noise.filter(n=>n.on).length;
+  const tgtV=Math.abs(st.rqMax-st.rqMin)<0.5?fmt(st.rqMin,0):fmt(st.rqMin,0)+"–"+fmt(st.rqMax,0);
+  const visual=st.visPct>0?'<span class="s" style="color:var(--bad)">'+fmt(st.visPct,1)+'% of area over 95 dB(A) ambient. Add visual warning devices there.</span>'
+    :'<span class="s">'+(onN?"Varies with "+onN+" noise source"+(onN>1?"s":"")+", highest at "+at(st.rqMaxI):"max(65, "+fmt(p.amb,0)+" + 10)")+'</span>';
+  const wmCls=st.wm<0?' style="color:var(--bad)"':'';
+  $("summary").innerHTML=
+    '<div class="stat"><span class="k">Result</span>'+pill+'<span class="s">'+(S.solo>=0?"Showing speaker "+(S.solo+1)+" only":"All speakers")+'</span></div>'+
+    '<div class="stat"><span class="k">Target</span><span class="v">'+tgtV+'<small>dB(A)</small></span>'+visual+'</div>'+
+    '<div class="stat"><span class="k">Worst margin</span><span class="v"'+wmCls+'>'+(st.wm>=0?"+":"")+fmt(st.wm)+'<small>dB</small></span><span class="s">'+mnP+'</span></div>'+
+    '<div class="stat"><span class="k">Area meeting target</span><span class="v">'+fmt(st.passPct,1)+'<small>%</small></span><span class="s">Aisles only, rack footprints excluded</span></div>'+
+    '<div class="stat"><span class="k">Maximum</span><span class="v">'+fmt(st.mx)+'<small>dB(A)</small></span><span class="s">'+(st.overPct>0?fmt(st.overPct,1)+"% over 105":"Under the 105 dB(A) limit")+'</span></div>'+
+    '<div class="stat"><span class="k">Amplifier load</span><span class="v">'+fmt(load,2)+'<small>W</small></span><span class="s">'+n+' speakers · allow ≥ '+Math.ceil(amp)+' W with 25% spare</span></div>'+
+    '<div class="stat"><span class="k">RT60 estimate</span><span class="v">'+fmt(G.RT,1)+'<small>s</small></span><span class="s">Sabine, α '+fmt(p.alpha,2)+', V '+Math.round(G.V)+' m³'+(G.openA>0?", "+fmt(G.openA,1)+" m² open doors":"")+'</span></div>';
+  $("legend2d").innerHTML=legendHTML();$("legend3d").innerHTML=legendHTML();
+  const fi=$("floorInfo");if(fi)fi.textContent=floorInfoText();
+}
+function renderProbe(){
+  const el=$("probe");
+  if(!S.probe||!S.speakers.length){el.innerHTML='<p class="hint">Click the plan to see the level at any point, broken down by speaker.</p>';return;}
+  const pr=probeAt(S.probe.x,S.probe.y),p=G.p,v=pr.total;
+  const inR=inRack(G.racks,S.probe.x,S.probe.y);
+  if(p.F.custom&&!p.F.inside(S.probe.x,S.probe.y)){el.innerHTML='<p class="mono">x '+fmt(S.probe.x,2)+' m · y '+fmt(S.probe.y,2)+' m</p><p class="hint">This point is outside the floor area. Click inside the outline to probe.</p>';return;}
+  const ab=ambientAt(S.probe.x,S.probe.y),req=ab.req;
+  const pill=v>105?'<span class="pill bad">Over 105</span>':v>=req?'<span class="pill ok">Meets '+req.toFixed(0)+'</span>':'<span class="pill bad">Short by '+fmt(req-v)+' dB</span>';
+  let nt='';
+  if(ab.rows.length){
+    const nr=ab.rows.slice().sort((a,b)=>b.lvl-a.lvl).slice(0,5);
+    nt='<div class="tbl-wrap"><table><thead><tr><th>Noise</th><th class="n">Dist m</th><th>Path</th><th class="n">dB(A)</th></tr></thead><tbody>'+
+      nr.map(r=>{const parts=[];if(r.blk)parts.push("rack");if(r.wl.n)parts.push("wall");if(r.wl.door)parts.push("door");
+        return '<tr><td>N'+(r.o.i+1)+' '+escapeHTML(r.o.n.name)+'</td><td class="n">'+fmt(r.r)+'</td><td>'+(parts.length?parts.join("+"):"clear")+'</td><td class="n">'+fmt(r.lvl)+'</td></tr>';}).join("")+
+      '</tbody></table></div>';
+  }
+  const ambLine='<p class="mono">Ambient here '+fmt(ab.amb)+' dB(A) · target '+fmt(req)+' dB(A)'+(req>105?' · <span style="color:var(--bad)">needs visual devices</span>':'')+'</p>';
+  const rows=pr.rows.slice().sort((a,b)=>b.lvl-a.lvl);
+  const top=rows.slice(0,10);
+  let t='<div class="tbl-wrap"><table><thead><tr><th>No.</th><th class="n">Dist m</th><th class="n">Off-axis</th><th>Path</th><th class="n">dB(A)</th></tr></thead><tbody>';
+  top.forEach(r=>{
+    const parts=[];if(r.blk)parts.push("rack");if(r.wl.n)parts.push(r.wl.n>1?r.wl.n+" walls":"wall");if(r.wl.door)parts.push("door");if(r.out)parts.push("outside wall");
+    const loss=(r.blk?p.shadow:0)+r.wl.loss+(r.out?40:0);
+    const path=!parts.length?"clear":loss>0?'<span class="warnTxt">'+parts.join("+")+" −"+fmt(loss,0)+"</span>":parts.join(" + ")+" (open)";
+    t+='<tr style="'+(r.active?"":"opacity:.45")+'"><td class="mono">'+(r.q.i+1)+'</td><td class="n">'+fmt(r.r)+'</td><td class="n">'+fmt(r.ang,0)+'° ('+fmt(r.off,1)+')</td><td>'+path+'</td><td class="n">'+fmt(r.lvl)+'</td></tr>';});
+  t+='</tbody></table></div>';
+  if(rows.length>10)t+='<p class="hint">'+(rows.length-10)+' more speakers each contribute less than '+fmt(top[9].lvl)+' dB.</p>';
+  el.innerHTML='<p class="mono">x '+fmt(S.probe.x,2)+' m · y '+fmt(S.probe.y,2)+' m · '+fmt(p.ear,1)+' m AFL'+(inR?' · inside rack footprint':'')+'</p>'+
+    '<div class="big">'+fmt(v)+'<small>dB(A)</small></div>'+pill+ambLine+
+    (p.reverb?'<p class="hint">Includes a reverberant field of '+fmt(10*Math.log10(G.revLin))+' dB.</p>':'')+t+nt;
+}
+function escapeHTML(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+
+const tbody=$("tbody");
+function modelOptions(sel){return CATALOG.map(c=>'<option value="'+c.id+'"'+(c.id===sel?" selected":"")+">"+c.name+"</option>").join("");}
+function tapOptions(m,sel){return getModel(m).taps.map(t=>'<option value="'+t+'"'+(t===sel?" selected":"")+">"+t+"</option>").join("");}
+function rowHTML(s,i){
+  const p=params(),roof=roofAt(p,s.y,s.x),warn=s.z>roof?'<span class="warnTxt">Above roof ('+roof.toFixed(2)+' m)</span>':(s.x<0||s.x>p.L||s.y<0||s.y>p.W||!p.F.inside(Math.min(p.L-0.01,Math.max(0,s.x)),Math.min(p.W-0.01,Math.max(0,s.y))))?'<span class="warnTxt">Outside floor</span>':"";
+  return '<tr data-i="'+i+'" class="'+(i===S.sel?"sel":"")+'"><td title="Select">'+(i+1)+'</td>'+
+  '<td><select data-k="model" aria-label="Model">'+modelOptions(s.model)+'</select></td>'+
+  '<td><select data-k="tap" aria-label="Tap">'+tapOptions(s.model,s.tap)+'</select></td>'+
+  '<td class="n"><input type="number" step="0.1" data-k="x" value="'+s.x+'" aria-label="X"></td>'+
+  '<td class="n"><input type="number" step="0.1" data-k="y" value="'+s.y+'" aria-label="Y"></td>'+
+  '<td class="n"><input type="number" step="0.1" data-k="z" value="'+s.z+'" aria-label="Height"></td>'+
+  '<td class="n"><input type="number" step="15" data-k="yaw" value="'+s.yaw+'" aria-label="Aim"></td>'+
+  '<td class="n"><input type="number" step="5" min="0" max="90" data-k="tilt" value="'+s.tilt+'" aria-label="Tilt"></td>'+
+  '<td class="w">'+warn+'</td><td><button type="button" class="del" data-del="'+i+'" aria-label="Remove speaker '+(i+1)+'">Remove</button></td></tr>';
+}
+function renderTable(){
+  tbody.innerHTML=S.speakers.length?S.speakers.map(rowHTML).join(""):'<tr><td colspan="10" class="hint" style="padding:12px">No speakers yet. Generate a layout or use Place speakers on the plan.</td></tr>';
+  const so=$("solo"),cur=S.solo;
+  so.innerHTML='<option value="-1">All speakers</option>'+S.speakers.map((s,i)=>'<option value="'+i+'">Speaker '+(i+1)+' only</option>').join("");
+  so.value=String(cur<S.speakers.length?cur:-1);
+}
+function syncRow(i){
+  const tr=tbody.querySelector('tr[data-i="'+i+'"]');if(!tr)return;const s=S.speakers[i];
+  tr.querySelector('[data-k="x"]').value=s.x;tr.querySelector('[data-k="y"]').value=s.y;
+}
+tbody.addEventListener("input",e=>{
+  const k=e.target.dataset.k;if(!k||e.target.tagName!=="INPUT")return;
+  const i=+e.target.closest("tr").dataset.i,v=parseFloat(e.target.value);if(!Number.isFinite(v))return;
+  S.speakers[i][k]=k==="tilt"?Math.max(0,Math.min(90,v)):v;
+  const tr=e.target.closest("tr");const tmp=document.createElement("tbody");tmp.innerHTML=rowHTML(S.speakers[i],i);
+  tr.querySelector(".w").innerHTML=tmp.querySelector(".w").innerHTML;
+  schedule(true);
+});
+tbody.addEventListener("change",e=>{
+  const k=e.target.dataset.k;if(!k||e.target.tagName!=="SELECT")return;
+  const i=+e.target.closest("tr").dataset.i,s=S.speakers[i];
+  if(k==="model"){s.model=e.target.value;s.tap=nearestTap(getModel(s.model),s.tap);if(getModel(s.model).disp>=180&&s.model==="EA0025")s.tilt=90;renderTable();}
+  else s.tap=parseFloat(e.target.value);
+  schedule(true);
+});
+tbody.addEventListener("click",e=>{
+  const d=e.target.closest("[data-del]");
+  if(d){const i=+d.dataset.del;S.speakers.splice(i,1);if(S.sel===i)S.sel=-1;else if(S.sel>i)S.sel--;if(S.solo===i)S.solo=-1;else if(S.solo>i)S.solo--;renderTable();schedule(true);return;}
+  const td=e.target.closest("td");if(td&&td.cellIndex===0){const i=+td.parentElement.dataset.i;S.sel=S.sel===i?-1:i;renderTable();schedule();}
+});
+
+const wbody=$("wbody"),dbody=$("dbody");
+function wallRowHTML(w,i){
+  const p=params(),out=[w.x1,w.x2].some(v=>v<0||v>p.L)||[w.y1,w.y2].some(v=>v<0||v>p.W);
+  const len=Math.hypot(w.x2-w.x1,w.y2-w.y1);
+  return '<tr data-i="'+i+'"><td>W'+(i+1)+'</td>'+
+  ["x1","y1","x2","y2"].map(k=>'<td class="n"><input type="number" step="0.1" data-k="'+k+'" value="'+w[k]+'" aria-label="'+k.toUpperCase()+'"></td>').join("")+
+  '<td><input type="checkbox" data-k="full"'+(w.full?" checked":"")+' aria-label="Full height"></td>'+
+  '<td class="n"><input type="number" step="0.1" min="0.5" data-k="h" value="'+w.h+'"'+(w.full?" disabled":"")+' aria-label="Height"></td>'+
+  '<td class="n"><input type="number" step="1" min="0" data-k="tl" value="'+w.tl+'" aria-label="Reduction"></td>'+
+  '<td class="w">'+(out?'<span class="warnTxt">Outside room</span>':'<span class="hint">'+len.toFixed(1)+' m long</span>')+'</td>'+
+  '<td><button type="button" class="del" data-del="'+i+'" aria-label="Remove wall '+(i+1)+'">Remove</button></td></tr>';
+}
+function renderWalls(){wbody.innerHTML=S.walls.length?S.walls.map(wallRowHTML).join(""):'<tr><td colspan="10" class="hint" style="padding:10px 12px">No internal walls. Use Draw wall on the plan or Add wall.</td></tr>';}
+function doorRowHTML(d,i){
+  const hosts=perimHosts(params()).map(h=>h.id).concat(S.walls.map((w,j)=>"W"+j));
+  const isOpen=d.type==="opening";
+  return '<tr data-i="'+i+'"><td>D'+(i+1)+'</td>'+
+  '<td><select data-k="host" aria-label="Wall">'+hosts.map(h=>'<option value="'+h+'"'+(h===d.host?" selected":"")+">"+hostName(h)+"</option>").join("")+'</select></td>'+
+  '<td><select data-k="type" aria-label="Door type">'+Object.keys(DOOR_T).map(k=>'<option value="'+k+'"'+(k===d.type?" selected":"")+">"+DOOR_T[k].name+"</option>").join("")+'</select></td>'+
+  ["off","w","h"].map(k=>'<td class="n"><input type="number" step="0.1" min="0" data-k="'+k+'" value="'+d[k]+'"></td>').join("")+
+  '<td><input type="checkbox" data-k="open"'+(isOpen||d.open?" checked":"")+(isOpen?" disabled":"")+' aria-label="Open"></td>'+
+  '<td class="n"><input type="number" step="1" min="0" data-k="tl" value="'+(isOpen?0:d.tl)+'"'+(isOpen?" disabled":"")+' aria-label="Closed reduction"></td>'+
+  '<td><button type="button" class="del" data-del="'+i+'" aria-label="Remove door '+(i+1)+'">Remove</button></td></tr>';
+}
+function renderDoors(){dbody.innerHTML=S.doors.length?S.doors.map(doorRowHTML).join(""):'<tr><td colspan="9" class="hint" style="padding:10px 12px">No doors. Use Add door on the plan or the button above.</td></tr>';}
+wbody.addEventListener("input",e=>{
+  const k=e.target.dataset.k;if(!k||e.target.type==="checkbox")return;
+  const i=+e.target.closest("tr").dataset.i,v=parseFloat(e.target.value);if(!Number.isFinite(v))return;
+  S.walls[i][k]=k==="h"?Math.max(0.5,v):k==="tl"?Math.max(0,v):v;schedule(true);
+});
+wbody.addEventListener("change",e=>{
+  if(e.target.dataset.k==="full"){const tr=e.target.closest("tr"),i=+tr.dataset.i;S.walls[i].full=e.target.checked;tr.querySelector('[data-k="h"]').disabled=e.target.checked;schedule(true);}
+  else if(["x1","y1","x2","y2"].includes(e.target.dataset.k)){const tr=e.target.closest("tr"),i=+tr.dataset.i,tmp=document.createElement("tbody");tmp.innerHTML=wallRowHTML(S.walls[i],i);tr.querySelector(".w").innerHTML=tmp.querySelector(".w").innerHTML;}
+});
+wbody.addEventListener("click",e=>{
+  const d=e.target.closest("[data-del]");if(!d)return;removeWall(+d.dataset.del);
+});
+const rbody=$("rbody");
+function rackRowHTML(r,i){
+  const p=params(),F=p.F,out=r.x<0||r.y<0||r.x+r.l>p.L+0.01||r.y+r.d>p.W+0.01||(F.custom&&![[r.x+0.05,r.y+0.05],[r.x+r.l-0.05,r.y+0.05],[r.x+0.05,r.y+r.d-0.05],[r.x+r.l-0.05,r.y+r.d-0.05],[r.x+r.l/2,r.y+r.d/2]].every(([x,y])=>F.inside(x,y)));
+  return '<tr data-i="'+i+'"><td>R'+(i+1)+'</td>'+
+  [["x",0.1],["y",0.1],["l",0.1],["d",0.1],["h",0.1]].map(([k,st])=>'<td class="n"><input type="number" step="'+st+'" min="0" data-k="'+k+'" value="'+r[k]+'"></td>').join("")+
+  '<td class="w">'+(out?'<span class="warnTxt">Outside floor</span>':'')+'</td>'+
+  '<td><button type="button" class="del" data-rot="'+i+'" aria-label="Rotate rack '+(i+1)+'">Rotate 90°</button></td>'+
+  '<td><button type="button" class="del" data-del="'+i+'" aria-label="Remove rack '+(i+1)+'">Remove</button></td></tr>';
+}
+function renderRacks(){rbody.innerHTML=S.racks.length?S.racks.map(rackRowHTML).join(""):'<tr><td colspan="9" class="hint" style="padding:10px 12px">No racks. Use Draw rack on the plan, Add rack, or Generate racks.</td></tr>';}
+function syncRack(i){const tr=rbody.querySelector('tr[data-i="'+i+'"]');if(!tr)return;const r=S.racks[i];tr.querySelector('[data-k="x"]').value=r.x;tr.querySelector('[data-k="y"]').value=r.y;}
+rbody.addEventListener("input",e=>{
+  const k=e.target.dataset.k;if(!k)return;const tr=e.target.closest("tr"),i=+tr.dataset.i,v=parseFloat(e.target.value);if(!Number.isFinite(v))return;
+  S.racks[i][k]=k==="x"||k==="y"?v:Math.max(0.1,v);
+  const tmp=document.createElement("tbody");tmp.innerHTML=rackRowHTML(S.racks[i],i);tr.querySelector(".w").innerHTML=tmp.querySelector(".w").innerHTML;
+  schedule(true);
+});
+rbody.addEventListener("click",e=>{
+  const d=e.target.closest("[data-del]");if(d){S.racks.splice(+d.dataset.del,1);renderRacks();schedule(true);return;}
+  const rt=e.target.closest("[data-rot]");if(rt){const r=S.racks[+rt.dataset.rot],p=params(),cx=r.x+r.l/2,cy=r.y+r.d/2,l=Math.min(r.d,p.L),dd=Math.min(r.l,p.W);
+    r.l=l;r.d=dd;r.x=r2(Math.max(0,Math.min(p.L-l,cx-l/2)));r.y=r2(Math.max(0,Math.min(p.W-dd,cy-dd/2)));renderRacks();schedule(true);}
+});
+$("addRack").addEventListener("click",()=>{const p=params(),l=Math.min(10,p.L);S.racks.push({x:r2((p.L-l)/2),y:r2((p.W-p.rackD)/2),l,d:p.rackD,h:p.rackH});renderRacks();schedule(true);});
+$("genRacks").addEventListener("click",()=>{generateRacks();renderRacks();schedule(true);});
+$("clearRacks").addEventListener("click",()=>{S.racks=[];$("rackInfo").textContent="All racks removed.";renderRacks();schedule(true);});
+$("clearWalls").addEventListener("click",()=>{S.walls=[];S.doors=S.doors.filter(d=>isPerim(d.host));renderWalls();renderDoors();schedule(true);});
+dbody.addEventListener("input",e=>{
+  const k=e.target.dataset.k;if(!k||e.target.tagName!=="INPUT"||e.target.type==="checkbox")return;
+  const i=+e.target.closest("tr").dataset.i,v=parseFloat(e.target.value);if(!Number.isFinite(v))return;
+  S.doors[i][k]=Math.max(k==="off"||k==="tl"?0:0.3,v);schedule(true);
+});
+dbody.addEventListener("change",e=>{
+  const k=e.target.dataset.k;if(!k)return;const i=+e.target.closest("tr").dataset.i,d=S.doors[i];
+  if(k==="host"){d.host=e.target.value;schedule(true);}
+  else if(k==="type"){d.type=e.target.value;const t=DOOR_T[d.type];d.w=t.w;d.h=t.h;d.tl=t.tl;d.open=d.type==="opening";renderDoors();schedule(true);}
+  else if(k==="open"){d.open=e.target.checked;schedule(true);}
+});
+dbody.addEventListener("click",e=>{const d=e.target.closest("[data-del]");if(!d)return;S.doors.splice(+d.dataset.del,1);renderDoors();schedule(true);});
+$("addWall").addEventListener("click",()=>{const p=params(),fb=p.fb,cx=r2((fb.x0+fb.x1)/2);S.walls.push({x1:cx,y1:r2(fb.y0),x2:cx,y2:r2(fb.y1),full:true,h:Math.min(4,p.eave),tl:25});renderWalls();renderDoors();schedule(true);});
+$("addDoor").addEventListener("click",()=>{const p=params(),t=DOOR_T.roller,hs=perimHosts(p),h0=hs[0].id,sg=hostSeg(h0,p);S.doors.push({host:h0,type:"roller",off:+Math.max(0,sg.len/2-t.w/2).toFixed(2),w:t.w,h:t.h,open:false,tl:t.tl});renderDoors();schedule(true);});
+
+const nbody=$("nbody");
+const noiseOpts=sel=>Object.keys(NOISE_T).map(k=>'<option value="'+k+'"'+(k===sel?" selected":"")+">"+NOISE_T[k].name+" ("+NOISE_T[k].lp+")</option>").join("");
+$("noiseType").innerHTML=noiseOpts("comp");$("noiseAddType").innerHTML=noiseOpts("dpump");
+function addNoiseAt(x,y,type){
+  const t=NOISE_T[type]||NOISE_T.custom,p=params();
+  S.noise.push({type,name:t.name,x:r2(Math.min(p.L,Math.max(0,x))),y:r2(Math.min(p.W,Math.max(0,y))),z:t.z,rot:0,lp:t.lp,on:true});
+  renderNoise();schedule(true);
+}
+function noiseRowHTML(n,i){
+  return '<tr data-i="'+i+'"><td>N'+(i+1)+'</td>'+
+  '<td><select data-k="type" aria-label="Type">'+Object.keys(NOISE_T).map(k=>'<option value="'+k+'"'+(k===n.type?" selected":"")+">"+NOISE_T[k].name+"</option>").join("")+'</select></td>'+
+  '<td><input type="text" data-k="name" value="'+escapeHTML(n.name)+'" aria-label="Label" style="font:inherit;font-size:13px;width:170px;background:var(--field);color:var(--ink);border:1px solid var(--line);border-radius:5px;padding:4px 6px"></td>'+
+  [["x",0.1],["y",0.1],["z",0.1],["rot",15],["lp",1]].map(([k,st])=>'<td class="n"><input type="number" step="'+st+'" data-k="'+k+'" value="'+(n[k]==null?0:n[k])+'"></td>').join("")+
+  '<td><input type="checkbox" data-k="on"'+(n.on?" checked":"")+' aria-label="Running"></td>'+
+  '<td><button type="button" class="del" data-del="'+i+'" aria-label="Remove noise source '+(i+1)+'">Remove</button></td></tr>';
+}
+function renderNoise(){nbody.innerHTML=S.noise.length?S.noise.map(noiseRowHTML).join(""):'<tr><td colspan="9" class="hint" style="padding:10px 12px">No noise sources. Use Add noise on the plan or Add noise source above.</td></tr>';}
+function syncNoise(i){const tr=nbody.querySelector('tr[data-i="'+i+'"]');if(!tr)return;tr.querySelector('[data-k="x"]').value=S.noise[i].x;tr.querySelector('[data-k="y"]').value=S.noise[i].y;}
+nbody.addEventListener("input",e=>{
+  const k=e.target.dataset.k;if(!k||e.target.tagName!=="INPUT"||e.target.type==="checkbox")return;
+  const i=+e.target.closest("tr").dataset.i;
+  if(k==="name"){S.noise[i].name=e.target.value;schedule();return;}
+  const v=parseFloat(e.target.value);if(!Number.isFinite(v))return;
+  S.noise[i][k]=k==="z"?Math.max(0,v):v;schedule(true);
+});
+nbody.addEventListener("change",e=>{
+  const k=e.target.dataset.k;if(!k)return;const i=+e.target.closest("tr").dataset.i,n=S.noise[i];
+  if(k==="on"){n.on=e.target.checked;schedule(true);}
+  else if(k==="type"){const old=NOISE_T[n.type],t=NOISE_T[e.target.value];if(!old||n.name===old.name)n.name=t.name;n.type=e.target.value;n.lp=t.lp;n.z=t.z;renderNoise();schedule(true);}
+});
+nbody.addEventListener("click",e=>{const d=e.target.closest("[data-del]");if(!d)return;S.noise.splice(+d.dataset.del,1);renderNoise();schedule(true);});
+$("addNoise").addEventListener("click",()=>{const p=params();addNoiseAt((p.fb.x0+p.fb.x1)/2,(p.fb.y0+p.fb.y1)/2,$("noiseAddType").value);});
+
+/* ---------- floor sketch: UI ---------- */
+function updateCeilUI(){const t=$("ceilType").value;$("ceilFlat").hidden=t!=="flat";$("ceilGable").hidden=t!=="gable";$("ceilMono").hidden=t!=="mono";}
+$("ceilType").addEventListener("change",updateCeilUI);
+const fbody=$("fbody");
+function ptsText(pts){return pts.map(q=>fmt(q[0],2)+", "+fmt(q[1],2)).join("; ");}
+function parsePts(t){const out=[];for(const part of String(t).split(";")){const m=part.trim().split(/[,\s]+/).filter(Boolean).map(Number);if(!m.length)continue;if(m.length!==2||!m.every(Number.isFinite))return null;out.push(m);}return out.length>=3?out:null;}
+function floorInfoText(){
+  const p=params(),F=p.F,fb=F.bbox;
+  return (F.custom?"Floor area "+fmt(F.area,1)+" m² · extents "+fmt(fb.x1-fb.x0,2)+" × "+fmt(fb.y1-fb.y0,2)+" m · "+F.edges.length+" outline edges":"No sketch: the whole "+fmt(p.L,2)+" × "+fmt(p.W,3)+" m site is floor ("+fmt(F.area,1)+" m²)")+" · "+ceilDesc(p);
+}
+function floorRowHTML(sh,i){
+  const dims=sh.kind==="rect"
+    ?'<span class="dims">X <input type="number" step="0.1" data-k="x" value="'+sh.x+'" aria-label="X"> Y <input type="number" step="0.1" data-k="y" value="'+sh.y+'" aria-label="Y"> W <input type="number" step="0.1" min="0.1" data-k="w" value="'+sh.w+'" aria-label="Width"> D <input type="number" step="0.1" min="0.1" data-k="h" value="'+sh.h+'" aria-label="Depth"></span>'
+    :'<input type="text" data-k="pts" value="'+escapeHTML(ptsText(sh.pts||[]))+'" aria-label="Corner points" style="width:340px;font-family:var(--mono);font-size:12px">';
+  return '<tr data-i="'+i+'"><td>F'+(i+1)+'</td><td>'+(sh.kind==="rect"?"Rectangle":"Lines, "+(sh.pts||[]).length+" corners")+'</td>'+
+    '<td><select data-k="op" aria-label="Mode"><option value="add"'+(sh.op!=="cut"?" selected":"")+'>Add floor</option><option value="cut"'+(sh.op==="cut"?" selected":"")+'>Cut out</option></select></td>'+
+    '<td>'+dims+'</td><td class="n">'+fmt(shapeArea(sh),1)+'</td>'+
+    '<td><button type="button" class="del" data-del="'+i+'" aria-label="Remove shape '+(i+1)+'">Remove</button></td></tr>';
+}
+function renderFloor(){
+  fbody.innerHTML=S.floor.length?S.floor.map(floorRowHTML).join(""):'<tr><td colspan="6" class="hint" style="padding:10px 12px">No floor sketch. Choose Sketch floor on the plan to draw the outline.</td></tr>';
+  $("floorInfo").textContent=floorInfoText();
+}
+// Change the floor and keep doors on the outside walls where they were.
+function changeFloor(fn,opt){
+  opt=opt||{};const p0=params(),dx=opt.dx||0,dy=opt.dy||0;
+  const cs=S.doors.map(d=>{if(!isPerim(d.host))return null;const seg=hostSeg(d.host,p0);if(!seg||seg.len<0.05)return null;
+    const cd=clampDoor(d,seg,p0),u=(cd.off+cd.w/2)/seg.len;return [seg.x1+(seg.x2-seg.x1)*u+dx,seg.y1+(seg.y2-seg.y1)*u+dy];});
+  fn();
+  const p1=params(),hosts=perimHosts(p1);
+  S.doors.forEach((d,i)=>{const c=cs[i];if(!c)return;let best=null,bd=Infinity;
+    hosts.forEach(h=>{const sg=hostSeg(h.id,p1);if(!sg||sg.len<d.w*0.5)return;const dd=segDist(c[0],c[1],sg.x1,sg.y1,sg.x2,sg.y2);if(dd<bd){bd=dd;best={h,sg};}});
+    if(best){const sg=best.sg,ux=(sg.x2-sg.x1)/sg.len,uy=(sg.y2-sg.y1)/sg.len,proj=(c[0]-sg.x1)*ux+(c[1]-sg.y1)*uy;
+      d.host=best.h.id;d.off=r2(Math.max(0,Math.min(sg.len-Math.min(d.w,sg.len),proj-d.w/2)));}});
+  if(opt.render!==false)renderFloor();else $("floorInfo").textContent=floorInfoText();
+  renderDoors();schedule(true,true);
+}
+fbody.addEventListener("input",e=>{
+  const k=e.target.dataset.k;if(!k||e.target.type!=="number")return;
+  const i=+e.target.closest("tr").dataset.i,v=parseFloat(e.target.value);if(!Number.isFinite(v))return;
+  S.floor[i][k]=(k==="w"||k==="h")?Math.max(0.1,v):v;$("floorInfo").textContent=floorInfoText();schedule(true);
+});
+fbody.addEventListener("change",e=>{
+  const k=e.target.dataset.k;if(!k)return;const tr=e.target.closest("tr"),i=+tr.dataset.i,sh=S.floor[i];
+  if(k==="op"){changeFloor(()=>{sh.op=e.target.value;});return;}
+  if(k==="pts"){const pts=parsePts(e.target.value);
+    if(!pts){e.target.value=ptsText(sh.pts||[]);$("floorInfo").textContent="Enter at least three corners as \"x, y; x, y; x, y\".";return;}
+    changeFloor(()=>{sh.pts=pts;},{render:false});tr.cells[1].textContent="Lines, "+pts.length+" corners";tr.cells[4].textContent=fmt(shapeArea(sh),1);return;}
+  changeFloor(()=>{},{render:false});tr.cells[4].textContent=fmt(shapeArea(sh),1);
+});
+fbody.addEventListener("click",e=>{const d=e.target.closest("[data-del]");if(!d)return;const i=+d.dataset.del;changeFloor(()=>{S.floor.splice(i,1);});});
+$("clearFloor").addEventListener("click",()=>changeFloor(()=>{S.floor=[];}));
+$("addFloorRect").addEventListener("click",()=>{const p=params();changeFloor(()=>{S.floor.push({kind:"rect",x:0,y:0,w:r2(Math.min(20,p.L)),h:r2(Math.min(15,p.W)),op:"add"});});});
+$("fitSite").addEventListener("click",()=>{
+  const p=params(),F=p.F;if(!F.custom){$("floorInfo").textContent="Sketch a floor outline first.";return;}
+  const fb=F.bbox,dx=-fb.x0,dy=-fb.y0;
+  changeFloor(()=>{
+    S.floor.forEach(sh=>{if(sh.kind==="rect"){sh.x=r2(sh.x+dx);sh.y=r2(sh.y+dy);}else sh.pts=sh.pts.map(q=>[r2(q[0]+dx),r2(q[1]+dy)]);});
+    S.speakers.forEach(o=>{o.x=r2(o.x+dx);o.y=r2(o.y+dy);});S.noise.forEach(o=>{o.x=r2(o.x+dx);o.y=r2(o.y+dy);});
+    S.racks.forEach(o=>{o.x=r2(o.x+dx);o.y=r2(o.y+dy);});S.walls.forEach(w=>{w.x1=r2(w.x1+dx);w.y1=r2(w.y1+dy);w.x2=r2(w.x2+dx);w.y2=r2(w.y2+dy);});
+    if(S.probe)S.probe={x:S.probe.x+dx,y:S.probe.y+dy};
+    $("L").value=String(Math.ceil((fb.x1-fb.x0)*10)/10);$("W").value=String(Math.ceil((fb.y1-fb.y0)*10)/10);
+  },{dx,dy});
+  renderTable();renderWalls();renderRacks();renderNoise();
+});
+// Sketch helpers
+function polySnap(a){
+  const P=S.polyDraft;if(!P||!P.pts.length)return a;
+  const l=P.pts[P.pts.length-1],dx=a.x-l[0],dy=a.y-l[1],t=Math.tan(7*Math.PI/180);
+  let x=a.x,y=a.y;if(Math.abs(dy)<=t*Math.abs(dx))y=l[1];else if(Math.abs(dx)<=t*Math.abs(dy))x=l[0];
+  if(P.pts.length>=3&&PM){const f=P.pts[0];if(Math.hypot(x-f[0],y-f[1])*PM.sc<12){x=f[0];y=f[1];}}
+  return {x:r2(x),y:r2(y)};
+}
+function finishPoly(){
+  const P=S.polyDraft;if(!P)return;
+  const pts=[];P.pts.forEach(q=>{const l=pts[pts.length-1];if(!l||Math.hypot(q[0]-l[0],q[1]-l[1])>0.05)pts.push(q);});
+  if(pts.length>2){const f=pts[0],l=pts[pts.length-1];if(Math.hypot(f[0]-l[0],f[1]-l[1])<0.05)pts.pop();}
+  S.polyDraft=null;S.polyCursor=null;updateFloorCtl();
+  if(pts.length<3){$("toolHint").textContent="A line shape needs at least three corners.";drawPlan();return;}
+  changeFloor(()=>{S.floor.push({kind:"poly",pts,op:$("floorOp").value});});
+}
+function updateFloorCtl(){
+  const on=S.tool==="floor";$("floorCtl").hidden=!on;
+  const poly=on&&$("floorShape").value==="poly";$("floorFinish").hidden=!poly;$("floorUndo").hidden=!poly;
+  $("floorFinish").disabled=!(S.polyDraft&&S.polyDraft.pts.length>=3);$("floorUndo").disabled=!(S.polyDraft&&S.polyDraft.pts.length);
+}
+$("floorShape").addEventListener("change",()=>{S.polyDraft=null;S.polyCursor=null;updateFloorCtl();drawPlan();});
+$("floorFinish").addEventListener("click",finishPoly);
+$("floorUndo").addEventListener("click",()=>{if(S.polyDraft){S.polyDraft.pts.pop();if(!S.polyDraft.pts.length)S.polyDraft=null;updateFloorCtl();drawPlan();}});
+plan.addEventListener("dblclick",e=>{if(S.tool==="floor"&&S.polyDraft){e.preventDefault();finishPoly();}});
+document.addEventListener("keydown",e=>{
+  if(S.tool!=="floor"||!S.polyDraft)return;
+  const t=e.target;if(t instanceof HTMLInputElement||t instanceof HTMLSelectElement||t instanceof HTMLTextAreaElement)return;
+  if(e.key==="Escape"){S.polyDraft=null;S.polyCursor=null;updateFloorCtl();drawPlan();e.preventDefault();}
+  else if(e.key==="Backspace"){S.polyDraft.pts.pop();if(!S.polyDraft.pts.length)S.polyDraft=null;updateFloorCtl();drawPlan();e.preventDefault();}
+  else if(e.key==="Enter"){finishPoly();e.preventDefault();}
+});
+
+function genDefaults(){const m=getModel($("gModel").value);return{model:m.id,tap:parseFloat($("gTap").value)||m.taps[0],tilt:Math.max(0,Math.min(90,num("gTilt",25))),z:num("gZ",5.5)};}
+function addSpeakerAt(x,y){
+  const p=params(),d=genDefaults(),aim=$("gAim").value;
+  let yaw=0,tilt=d.tilt;
+  if(aim==="down")tilt=90;else if(aim==="centre")yaw=y<(p.fb.y0+p.fb.y1)/2?90:-90;
+  S.speakers.push({model:d.model,tap:d.tap,x:+x.toFixed(2),y:+y.toFixed(2),z:+Math.min(d.z,roofAt(p,y,x)-0.2).toFixed(2),yaw,tilt});
+  S.sel=S.speakers.length-1;renderTable();schedule(true);
+}
+function generate(){
+  const p=params(),d=genDefaults(),rows=Math.max(1,Math.min(6,Math.round(num("gRows",2)))),sp=Math.max(2,num("gSp",10));
+  const stag=$("gStag").checked,aim=$("gAim").value;
+  const fb=p.fb,F=p.F,FL=fb.x1-fb.x0,FW=fb.y1-fb.y0,cy=(fb.y0+fb.y1)/2;
+  const count=Math.max(1,Math.round(FL/sp)),act=FL/count;
+  const out=[];let skipped=0;
+  for(let r=0;r<rows;r++){
+    const y=fb.y0+FW*(2*r+1)/(2*rows),st=stag&&r%2===1;
+    let xs=st?Array.from({length:count-1},(_,k)=>fb.x0+(k+1)*act):Array.from({length:count},(_,k)=>fb.x0+(k+.5)*act);
+    if(!xs.length)xs=[fb.x0+FL/2];
+    xs.forEach((x,k)=>{
+      if(F.custom&&!F.inside(x,y)){skipped++;return;}
+      let yaw=0,tilt=d.tilt;
+      if(aim==="alt")yaw=k%2===0?0:180;
+      else if(aim==="down"){tilt=90;}
+      else if(aim==="centre")yaw=Math.abs(y-cy)<0.01?0:(y<cy?90:-90);
+      out.push({model:d.model,tap:d.tap,x:+x.toFixed(2),y:+y.toFixed(3),z:+Math.min(d.z,roofAt(p,y,x)-0.2).toFixed(2),yaw,tilt});
+    });
+  }
+  S.speakers=out;S.sel=-1;S.solo=-1;
+  $("genInfo").textContent=out.length+" speakers placed"+(skipped?" ("+skipped+" skipped outside the floor)":"")+". Actual spacing "+act.toFixed(2)+" m, rows at Y "+Array.from({length:rows},(_,r)=>(fb.y0+FW*(2*r+1)/(2*rows)).toFixed(2)).join(", ")+" m.";
+  renderTable();schedule(true,true);
+}
+function fillGen(){
+  const m=getModel($("gModel").value),prev=parseFloat($("gTap").value);
+  $("gTap").innerHTML=m.taps.map(t=>"<option value=\""+t+"\">"+t+" W</option>").join("");
+  $("gTap").value=String(Number.isFinite(prev)?nearestTap(m,prev):m.taps[0]);
+  $("customBox").hidden=m.id!=="CUSTOM";
+}
+$("gModel").innerHTML=modelOptions("EA0027");fillGen();$("gTap").value="2.5";
+$("gModel").addEventListener("change",fillGen);
+$("gen").addEventListener("click",generate);
+$("addSpk").addEventListener("click",()=>{const p=params();addSpeakerAt((p.fb.x0+p.fb.x1)/2,(p.fb.y0+p.fb.y1)/2);});
+$("clear").addEventListener("click",()=>{S.speakers=[];S.sel=-1;S.solo=-1;renderTable();schedule(true);});
+$("mode").addEventListener("change",e=>{S.mode=e.target.value;schedule();});
+$("solo").addEventListener("change",e=>{S.solo=+e.target.value;schedule(true);});
+const TOOL_HINT={probe:"Click to probe. Drag a speaker to move it.",speaker:"Click the plan to place a speaker using the layout generator settings.",wall:"Drag across the plan to draw a wall. It snaps to 0.1 m, to the outside walls and to straight runs.",door:"Click on or near any wall to add the selected door type there.",rack:"Drag a rectangle to draw a rack, or click to drop a 10 m rack at the generator depth and height.",noise:"Click the plan to place the selected noise source. Drag it later with Probe / move.",erase:"Click a speaker, noise source, door, wall, rack or floor shape to remove it.",floor:"Drag a rectangle, or choose Lines and click the corners. Lines snap to 0.1 m and right angles. Double-click, press Enter or click the first point to close."};
+document.querySelectorAll("[data-tool]").forEach(b=>b.addEventListener("click",()=>{
+  S.tool=b.dataset.tool;document.querySelectorAll("[data-tool]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));
+  $("doorType").hidden=S.tool!=="door";$("noiseType").hidden=S.tool!=="noise";if(S.tool!=="floor"){S.polyDraft=null;S.polyCursor=null;}updateFloorCtl();$("toolHint").textContent=TOOL_HINT[S.tool];drawPlan();
+}));
+$("worst").addEventListener("click",()=>{const k=G.stats.mnI;if(k<0)return;S.probe={x:(k%G.nx+.5)*G.dx,y:(Math.floor(k/G.nx)+.5)*G.dy};schedule(true);});
+$("copy").addEventListener("click",()=>{
+  const lines=["No,Model,Tap W,X m,Y m,Height m,Aim deg,Tilt deg"].concat(S.speakers.map((s,i)=>[i+1,getModel(s.model).name,s.tap,s.x,s.y,s.z,s.yaw,s.tilt].join(",")));
+  const txt=lines.join("\n"),msg=$("copyMsg");
+  const done=()=>{msg.textContent="Copied "+S.speakers.length+" rows";setTimeout(()=>msg.textContent="",2500);};
+  if(NATIVE){NATIVE.postMessage({type:"copy",text:txt});done();return;}
+  try{navigator.clipboard.writeText(txt).then(done,()=>{msg.textContent="Copy is blocked here. Select the table instead.";});}catch(err){msg.textContent="Copy is blocked here. Select the table instead.";}
+});
+document.querySelector("aside").addEventListener("input",e=>{
+  if(e.target.closest("fieldset")&&["gModel","gTap","gRows","gSp","gZ","gStag","gAim","gTilt","rackOri","rackN","rackD","rackH","rackEnd","rpProject","rpArea","rpBy","rpRef","rpRev","rpNotes"].includes(e.target.id))return;
+  if(e.target.id==="cSens"||e.target.id==="cDisp"){schedule(true);return;}
+  if(e.target.id==="ceilType")updateCeilUI();
+  schedule(true,["L","W","eave","apex","ceilH","monoLo","monoHi","ceilType"].includes(e.target.id));
+});
+
+let R3=null;
+function init3D(){
+  const host=$("three");
+  if(!window.THREE){host.innerHTML='<p class="fallback">The 3D view could not load. The plan and results still work.</p>';return;}
+  let renderer;
+  try{renderer=new THREE.WebGLRenderer({antialias:true});}catch(e){host.innerHTML='<p class="fallback">WebGL is not available in this browser. The plan and results still work.</p>';return;}
+  renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));host.prepend(renderer.domElement);
+  const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(42,1,0.1,2000);
+  const controls=THREE.OrbitControls?new THREE.OrbitControls(camera,renderer.domElement):null;
+  scene.add(new THREE.AmbientLight(0xffffff,0.72));const dl=new THREE.DirectionalLight(0xffffff,0.6);dl.position.set(-30,60,40);scene.add(dl);
+  const group=new THREE.Group();scene.add(group);
+  R3={renderer,scene,camera,controls,group,host,key:""};
+  if(controls)controls.addEventListener("change",render3D);
+  new ResizeObserver(size3D).observe(host);size3D();
+}
+function size3D(){if(!R3)return;const w=R3.host.clientWidth,h=R3.host.clientHeight;R3.renderer.setSize(w,h);R3.camera.aspect=w/Math.max(1,h);R3.camera.updateProjectionMatrix();render3D();}
+function render3D(){if(R3)R3.renderer.render(R3.scene,R3.camera);}
+function fitCam(){
+  const p=G.p,c=R3.camera,m=Math.max(p.L,p.W);
+  c.position.set(-p.L*0.55,p.apex+m*0.55,p.W*0.5+m*0.75);
+  if(R3.controls){R3.controls.target.set(0,p.ear,0);R3.controls.update();}else c.lookAt(0,p.ear,0);
+}
+function disposeGroup(g){g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material){const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>{if(m.map)m.map.dispose();m.dispose();});}});while(g.children.length)g.remove(g.children[0]);}
+function numSprite(n,sel,ring){
+  const cv=document.createElement("canvas");cv.width=cv.height=64;const c=cv.getContext("2d");
+  c.fillStyle=sel?"#111":"#fff";c.beginPath();c.arc(32,32,28,0,Math.PI*2);c.fill();
+  c.lineWidth=4;c.strokeStyle=ring||css("--accent");c.stroke();
+  c.fillStyle=sel?"#fff":"#111";c.font="600 "+(String(n).length>2?22:30)+"px sans-serif";c.textAlign="center";c.textBaseline="middle";c.fillText(String(n),32,34);
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),depthTest:false}));sp.scale.set(0.9,0.9,1);sp.renderOrder=10;return sp;
+}
+/* ---------- 3D equipment models for noise sources ---------- */
+// Plan footprint [length along X, width along Y] in metres at rotation 0; "circle" = diameter.
+const EQUIP_FP={dpump:[3.6,1.2],epump:[2.0,0.7],jockey:[0.6,0.6],comp:[2.4,1.0],fan:[0.55,1.1],hvls:[7.3,7.3,"circle"],
+  ahu:[3.2,1.4],gen:[3.4,1.2],fork:[3.0,1.1],efork:[3.0,1.1],charger:[0.6,0.45],machine:[2.3,0.6],custom:[1,1]};
+function makeEquipment(type,p,n){
+  const g=new THREE.Group();
+  const M=hex=>new THREE.MeshLambertMaterial({color:new THREE.Color(hex)});
+  const add=(geo,m,x,y,z)=>{const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);g.add(o);return o;};
+  const B=(w,h,d,x,y,z,m)=>add(new THREE.BoxGeometry(w,h,d),m,x,y,z);
+  const C=(r1,r2,h,x,y,z,m,ax,seg,open)=>{const o=add(new THREE.CylinderGeometry(r1,r2,h,seg||20,1,!!open),m,x,y,z);
+    if(ax==="x")o.rotation.z=Math.PI/2;else if(ax==="z")o.rotation.x=Math.PI/2;return o;};
+  const Sp=(r,x,y,z,m)=>add(new THREE.SphereGeometry(r,16,12),m,x,y,z);
+  const red=M("#B8231B"),dark=M("#2B3035"),steel=M("#8A949A"),motor=M("#4F6475"),black=M("#1C1F22"),yellow=M("#E3B21B");
+  let h=1,mount="floor",above=0.6,shiftX=0;
+  switch(type){
+    case "dpump":{ // diesel engine-driven fire pump set on a skid
+      B(3.6,.15,1.2,0,.075,0,dark);
+      B(1.4,.85,.8,-.75,.575,0,red);B(1.2,.14,.5,-.75,1.07,0,dark);
+      B(.18,1.1,1.0,-1.55,.7,0,dark);B(.02,.9,.85,-1.65,.7,0,steel);
+      C(.16,.16,.9,-.9,1.35,.25,steel,"x");C(.06,.06,.9,-.4,1.75,.25,steel);C(.09,.09,.05,-.4,2.2,.25,black);
+      B(.4,.4,.45,.15,.35,0,yellow);
+      B(.8,.7,.75,.75,.5,0,red);
+      C(.17,.17,.35,.75,.5,.55,red,"z");C(.14,.14,.35,.75,.5,-.55,red,"z");
+      C(.2,.2,.04,.75,.5,.73,steel,"z");C(.17,.17,.04,.75,.5,-.73,steel,"z");
+      B(.55,1.0,.3,1.5,.65,-.3,M("#C9CFD2"));B(.3,.2,.02,1.5,.85,-.46,black);
+      h=2.25;break;}
+    case "epump":{ // electric end-suction pump set
+      B(2.0,.12,.7,0,.06,0,dark);
+      C(.28,.28,.85,-.45,.45,0,motor,"x");C(.3,.3,.14,-.95,.45,0,motor,"x");B(.24,.18,.22,-.4,.8,0,motor);
+      B(.25,.3,.3,.1,.45,0,yellow);
+      C(.12,.12,.3,.35,.45,0,red,"x");C(.32,.32,.24,.62,.45,0,red,"x");
+      C(.12,.12,.25,.85,.45,0,red,"x");C(.17,.17,.04,.97,.45,0,steel,"x");
+      C(.1,.1,.3,.62,.85,0,red);C(.15,.15,.04,.62,1.0,0,steel);
+      h=1.05;break;}
+    case "jockey":{ // vertical multistage jockey pump
+      B(.55,.08,.55,0,.04,0,dark);
+      C(.05,.05,.6,0,.16,0,steel,"x");C(.09,.09,.03,-.3,.16,0,steel,"x");C(.09,.09,.03,.3,.16,0,steel,"x");
+      C(.14,.14,.12,0,.14,0,red);C(.11,.11,.55,0,.475,0,red);
+      C(.16,.16,.08,0,.79,0,dark);C(.15,.15,.42,0,1.04,0,motor);C(.16,.16,.06,0,1.28,0,motor);
+      h=1.32;break;}
+    case "comp":{ // packaged air compressor with vertical receiver
+      const blue=M("#2F6DB5");
+      B(1.4,.06,.9,-.4,.03,0,dark);
+      B(1.6,1.5,1.0,-.4,.81,0,blue);B(1.62,.08,1.02,-.4,1.6,0,M("#24578F"));
+      for(let k=0;k<4;k++){B(.25,.6,.02,-.95+k*.37,.95,.51,dark);B(.25,.6,.02,-.95+k*.37,.95,-.51,dark);}
+      for(let k=0;k<3;k++)C(.03,.03,.35,.95+.25*Math.cos(k*2.1),.175,.25*Math.sin(k*2.1),dark);
+      C(.33,.33,1.25,.95,.975,0,steel);Sp(.33,.95,1.6,0,steel);Sp(.33,.95,.35,0,steel);
+      C(.04,.04,.7,.3,1.35,0,steel,"x");
+      h=1.95;break;}
+    case "fan":{ // wall-mounted axial exhaust fan; axis along local X, origin at fan centre
+      mount="wall";
+      const frame=M("#9AA3A8");
+      B(.05,1.1,1.1,-.27,0,0,frame);
+      const duct=new THREE.MeshLambertMaterial({color:new THREE.Color("#8A949A"),side:THREE.DoubleSide});
+      C(.46,.46,.5,0,0,0,duct,"x",28,true);
+      C(.13,.13,.32,.02,0,0,dark,"x");
+      for(let k=0;k<6;k++){const a=k*Math.PI/3;const bl=B(.04,.34,.13,.05,Math.cos(a)*.27,Math.sin(a)*.27,dark);bl.rotation.x=a;}
+      const ring=add(new THREE.TorusGeometry(.46,.015,6,32),steel,.25,0,0);ring.rotation.y=Math.PI/2;
+      const r2x=add(new THREE.TorusGeometry(.25,.01,6,24),steel,.25,0,0);r2x.rotation.y=Math.PI/2;
+      B(.01,.92,.02,.25,0,0,steel);B(.01,.02,.92,.25,0,0,steel);
+      above=0.7;h=0;break;}
+    case "hvls":{ // HVLS ceiling fan hanging from the roof; origin at hub
+      mount="ceiling";
+      const rod=Math.max(.3,roofAt(p,n.y,n.x)-n.z-.45);
+      C(.28,.28,.45,0,.2,0,dark);B(.36,.22,.36,0,.52,0,dark);
+      C(.04,.04,rod,0,.45+rod/2,0,steel);B(.4,.05,.4,0,.45+rod,0,steel);
+      C(.36,.36,.08,0,-.07,0,steel);
+      const bm=M("#B9C1C6");
+      for(let k=0;k<6;k++){const a=k*Math.PI/3;const bl=B(3.3,.03,.28,Math.cos(a)*2.0,-.1,Math.sin(a)*2.0,bm);bl.rotation.y=-a;
+        const wl=B(.05,.12,.3,Math.cos(a)*3.66,-.06,Math.sin(a)*3.66,bm);wl.rotation.y=-a;}
+      above=0.8;h=0;break;}
+    case "ahu":{ // air handling unit, three sections
+      const s1=M("#C9CFD2"),s2=M("#BCC3C7"),door=M("#AEB6BB");
+      B(3.2,.12,1.4,0,.06,0,dark);
+      B(1.0,1.5,1.4,-1.1,.87,0,s1);B(1.18,1.5,1.4,.0,.87,0,s2);B(1.0,1.5,1.4,1.1,.87,0,s1);
+      [-1.1,0,1.1].forEach(x=>{B(.7,1.2,.02,x,.87,.71,door);B(.04,.18,.03,x+.28,.9,.73,dark);});
+      B(.8,.35,.7,1.1,1.8,0,steel);B(.7,.3,.6,-1.1,1.77,0,steel);
+      h=1.97;break;}
+    case "gen":{ // enclosed diesel generator
+      const enc=M("#9EAA8E"),encD=M("#86927A"),door=M("#8E9A80");
+      B(3.4,.15,1.2,0,.075,0,dark);
+      B(3.3,1.75,1.15,0,1.025,0,enc);B(3.35,.06,1.2,0,1.93,0,encD);
+      [-1.05,0,1.05].forEach(x=>{B(.9,1.4,.02,x,1.0,.585,door);B(.9,1.4,.02,x,1.0,-.585,door);B(.04,.2,.03,x+.35,1.0,.6,dark);});
+      for(let yy=.5;yy<1.75;yy+=.15){B(.02,.05,.95,1.66,yy,0,dark);B(.02,.05,.95,-1.66,yy,0,dark);}
+      C(.1,.1,.6,-1.1,2.25,.2,black);C(.15,.15,.03,-1.1,2.56,.2,black);
+      h=2.6;break;}
+    case "fork": case "efork":{ // counterbalance forklift, forks toward +X
+      const body=M(type==="fork"?"#E3B21B":"#E57A1F");
+      [[.55,.32],[-.75,.26]].forEach(([x,r])=>[.42,-.42].forEach(z=>{C(r,r,.22,x,r,z,black,"z");C(r*.5,r*.5,.23,x,r,z,steel,"z");}));
+      B(1.6,.55,1.0,-.1,.555,0,body);
+      B(.45,.75,1.02,-.85,.705,0,type==="fork"?dark:M("#3A3F44"));
+      B(.5,.25,.5,-.35,.955,0,dark);B(.1,.45,.45,-.57,1.2,0,black);
+      [.35,-.65].forEach(x=>[.42,-.42].forEach(z=>C(.03,.03,1.35,x,1.5,z,black)));
+      B(1.05,.05,.9,-.15,2.18,0,black);
+      const sw=C(.17,.17,.03,.15,1.2,0,black);sw.rotation.z=.6;
+      [.3,-.3].forEach(z=>B(.08,2.2,.1,.72,1.18,z,steel));
+      B(.08,.08,.7,.72,2.25,0,steel);B(.06,.5,.9,.8,.4,0,dark);
+      [.25,-.25].forEach(z=>{B(1.1,.05,.12,1.38,.07,z,steel);B(.05,.45,.12,.83,.3,z,steel);});
+      if(type==="fork")C(.16,.16,.8,-.95,1.3,0,M("#D9D9D9"),"z");
+      else B(.5,.06,.6,-.2,.86,0,black);
+      shiftX=-.43;h=2.3;break;}
+    case "charger":{ // floor-standing battery charger cabinet
+      B(.62,.06,.47,0,.03,0,dark);
+      B(.6,1.2,.45,0,.66,0,M("#D5DADD"));
+      B(.3,.18,.02,0,1.0,.235,black);
+      for(let k=0;k<5;k++)B(.4,.02,.02,0,.35+k*.06,.235,dark);
+      B(.1,.12,.08,.36,.75,.1,dark);
+      h=1.3;break;}
+    case "machine":{ // workshop lathe
+      const mg=M("#6E8B74");
+      B(.5,.85,.55,-.8,.425,0,mg);B(.5,.85,.55,.85,.425,0,mg);
+      B(2.2,.08,.6,0,.89,0,dark);B(2.1,.25,.4,0,1.055,0,mg);
+      B(.55,.5,.5,-.8,1.43,0,mg);C(.16,.16,.12,-.47,1.38,0,steel,"x");
+      B(.3,.32,.3,.85,1.34,0,mg);B(.35,.12,.5,.1,1.24,0,dark);B(.12,.15,.12,.1,1.37,.05,steel);
+      C(.02,.02,2.0,0,.95,.23,steel,"x");
+      h=1.7;break;}
+    default:{ // custom: generic plant cabinet
+      B(1.0,1.0,1.0,0,.5,0,M("#8B8FA3"));
+      for(let k=0;k<4;k++)B(.7,.03,.02,0,.35+k*.1,.51,dark);
+      h=1.0;}
+  }
+  if(shiftX)g.children.forEach(c=>{c.position.x+=shiftX;});
+  g.userData={mount,h,above};
+  return g;
+}
+function build3D(refit){
+  if(!R3)return;const p=G.p,g=R3.group;disposeGroup(g);
+  R3.scene.background=new THREE.Color(css("--scene"));
+  const T=(x,y,z)=>new THREE.Vector3(x-p.L/2,z,y-p.W/2);
+  const ink=new THREE.Color(css("--ink")),rackC=new THREE.Color(css("--rack")),acc=new THREE.Color(css("--accent"));
+  const L=p.L,W=p.W,F=p.F,fr=F.r,cz=(x,y)=>p.ceil(x,y);
+  const shellMat=new THREE.MeshBasicMaterial({color:ink,transparent:true,opacity:.05,side:THREE.DoubleSide,depthWrite:false});
+  const wallP=[],lineP=[];
+  F.segs.forEach(q=>{const a0=T(q.x1,q.y1,0),b0=T(q.x2,q.y2,0),a1=T(q.x1,q.y1,cz(q.x1,q.y1)),b1=T(q.x2,q.y2,cz(q.x2,q.y2));
+    wallP.push(a0,b0,b1,a0,b1,a1);lineP.push(a0,b0,a1,b1);if(q.len>=1)lineP.push(a0,a1,b0,b1);});
+  if(wallP.length){const wg=new THREE.BufferGeometry().setFromPoints(wallP);wg.computeVertexNormals();g.add(new THREE.Mesh(wg,shellMat));}
+  const roofP=[],floorP=[],cc=p.ceilCfg,splitX=cc.type==="gable"&&cc.ridge==="y"?(p.fb.x0+p.fb.x1)/2:null;
+  F.runs.forEach(([j,i0,i1])=>{const y0=j*fr,y1=(j+1)*fr;let xs=[i0*fr,i1*fr];if(splitX!==null&&splitX>xs[0]&&splitX<xs[1])xs=[xs[0],splitX,xs[1]];
+    for(let k=0;k<xs.length-1;k++){const xa=xs[k],xb=xs[k+1];const A=T(xa,y0,cz(xa,y0)),B=T(xb,y0,cz(xb,y0)),C=T(xb,y1,cz(xb,y1)),D=T(xa,y1,cz(xa,y1));roofP.push(A,B,C,A,C,D);}
+    const A=T(i0*fr,y0,.01),B=T(i1*fr,y0,.01),C=T(i1*fr,y1,.01),D=T(i0*fr,y1,.01);floorP.push(A,B,C,A,C,D);});
+  if(roofP.length){const rg=new THREE.BufferGeometry().setFromPoints(roofP);rg.computeVertexNormals();g.add(new THREE.Mesh(rg,new THREE.MeshBasicMaterial({color:ink,transparent:true,opacity:.04,side:THREE.DoubleSide,depthWrite:false})));}
+  if(floorP.length)g.add(new THREE.Mesh(new THREE.BufferGeometry().setFromPoints(floorP),new THREE.MeshBasicMaterial({color:rackC,transparent:true,opacity:.12,side:THREE.DoubleSide,depthWrite:false})));
+  if(cc.type==="gable"){const fb=p.fb,rp=[];
+    if(cc.ridge==="y"){const x=(fb.x0+fb.x1)/2;let prev=null;for(let y=fb.y0;y<=fb.y1+1e-6;y+=fr){const ins=F.inside(x,Math.min(fb.y1-0.01,y));if(ins&&prev===null)prev=y;if((!ins||y>=fb.y1-1e-6)&&prev!==null){rp.push(T(x,prev,cz(x,prev)),T(x,y,cz(x,y)));prev=null;}}}
+    else{const y=(fb.y0+fb.y1)/2;let prev=null;for(let x=fb.x0;x<=fb.x1+1e-6;x+=fr){const ins=F.inside(Math.min(fb.x1-0.01,x),y);if(ins&&prev===null)prev=x;if((!ins||x>=fb.x1-1e-6)&&prev!==null){rp.push(T(prev,y,cz(prev,y)),T(x,y,cz(x,y)));prev=null;}}}
+    lineP.push(...rp);}
+  if(lineP.length)g.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(lineP),new THREE.LineBasicMaterial({color:ink,transparent:true,opacity:.7})));
+  const tex=new THREE.CanvasTexture(heatCanvas);tex.minFilter=THREE.LinearFilter;tex.magFilter=THREE.LinearFilter;
+  const heat=new THREE.Mesh(new THREE.PlaneGeometry(L,W),new THREE.MeshBasicMaterial({map:tex,transparent:true,opacity:.93,side:THREE.DoubleSide}));
+  heat.rotation.x=-Math.PI/2;heat.position.y=p.ear;g.add(heat);
+  const rackMat=new THREE.MeshLambertMaterial({color:rackC,transparent:true,opacity:.22,depthWrite:false});
+  const rackLine=new THREE.LineBasicMaterial({color:rackC,transparent:true,opacity:.85});
+  G.racks.forEach(b=>{
+    const bw=b.x1-b.x0,bd=b.y1-b.y0,box=new THREE.BoxGeometry(bw,b.h,bd);
+    const m=new THREE.Mesh(box,rackMat);const c=T((b.x0+b.x1)/2,(b.y0+b.y1)/2,b.h/2);m.position.copy(c);g.add(m);
+    const ed=new THREE.LineSegments(new THREE.EdgesGeometry(box),rackLine);ed.position.copy(c);g.add(ed);
+    const pts=[];for(let z=1.5;z<b.h-0.1;z+=1.5){const c4=[T(b.x0,b.y0,z),T(b.x1,b.y0,z),T(b.x1,b.y1,z),T(b.x0,b.y1,z)];for(let k=0;k<4;k++)pts.push(c4[k],c4[(k+1)%4]);}
+    const bayAlong=bw>=bd;const run=bayAlong?bw:bd;for(let s=2.7;s<run-0.1;s+=2.7){if(bayAlong){pts.push(T(b.x0+s,b.y0,0),T(b.x0+s,b.y0,b.h),T(b.x0+s,b.y1,0),T(b.x0+s,b.y1,b.h));}else{pts.push(T(b.x0,b.y0+s,0),T(b.x0,b.y0+s,b.h),T(b.x1,b.y0+s,0),T(b.x1,b.y0+s,b.h));}}
+    if(pts.length)g.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts),rackLine));
+  });
+  const doorC3=new THREE.Color(css("--door")),wallC=new THREE.Color(css("--wall3d"));
+  const wallMat=new THREE.MeshLambertMaterial({color:wallC,transparent:true,opacity:.5,side:THREE.DoubleSide,depthWrite:false});
+  const wallEdge=new THREE.LineBasicMaterial({color:ink,transparent:true,opacity:.6});
+  const doorMat=new THREE.MeshLambertMaterial({color:doorC3,transparent:true,opacity:.9,side:THREE.DoubleSide});
+  const holeMat=new THREE.MeshBasicMaterial({color:0x0b0f10,transparent:true,opacity:.55,side:THREE.DoubleSide,depthWrite:false});
+  const frameMat=new THREE.LineBasicMaterial({color:doorC3});
+  const quad=(a,b,c2,d,mat)=>{const geo=new THREE.BufferGeometry().setFromPoints([a,b,c2,a,c2,d]);geo.computeVertexNormals();return new THREE.Mesh(geo,mat);};
+  const at=(seg,s,z,off)=>{const u=seg.len?s/seg.len:0;const [nx,ny]=inwardN(seg,p);
+    return T(seg.x1+(seg.x2-seg.x1)*u+nx*(off||0),seg.y1+(seg.y2-seg.y1)*u+ny*(off||0),z);};
+  G.walls.forEach(w=>{
+    const ds=w.doors.slice().sort((a,b)=>a.off-b.off),pieces=[];let cur=0;
+    ds.forEach(d=>{const a=Math.max(cur,d.off),b=Math.min(w.len,d.off+d.w);if(a>cur)pieces.push([cur,a,0]);if(b>a)pieces.push([a,b,d.h]);cur=Math.max(cur,b);});
+    if(cur<w.len)pieces.push([cur,w.len,0]);
+    let sr=null;if((w.y1-W/2)*(w.y2-W/2)<0)sr=w.len*(W/2-w.y1)/(w.y2-w.y1);
+    const lines=[];
+    pieces.forEach(([a,b,zb])=>{
+      const cuts=[a];if(sr!==null&&sr>a&&sr<b)cuts.push(sr);cuts.push(b);
+      for(let k=0;k<cuts.length-1;k++){const s0=cuts[k],s1=cuts[k+1],t0=topAt(w,s0,p),t1=topAt(w,s1,p);
+        if(zb>=Math.min(t0,t1))continue;
+        g.add(quad(at(w,s0,zb),at(w,s1,zb),at(w,s1,t1),at(w,s0,t0),wallMat));
+        lines.push(at(w,s0,t0),at(w,s1,t1));if(zb>0)lines.push(at(w,s0,zb),at(w,s1,zb));else lines.push(at(w,s0,0),at(w,s1,0));}
+    });
+    lines.push(at(w,0,0),at(w,0,topAt(w,0,p)),at(w,w.len,0),at(w,w.len,topAt(w,w.len,p)));
+    g.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(lines),wallEdge));
+  });
+  S.doors.forEach(d=>{
+    const seg=hostSeg(d.host,p);if(!seg||seg.len<0.05)return;const cd=clampDoor(d,seg,p),o=seg.perim?0.05:0;
+    const a=at(seg,cd.off,0,o),b=at(seg,cd.off+cd.w,0,o),c2=at(seg,cd.off+cd.w,cd.h,o),dd=at(seg,cd.off,cd.h,o);
+    if(!cd.open)g.add(quad(a,b,c2,dd,doorMat));else if(seg.perim)g.add(quad(a,b,c2,dd,holeMat));
+    g.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints([a,dd,dd,c2,c2,b]),frameMat));
+  });
+  const noiseC3=new THREE.Color(css("--noise"));
+  S.noise.forEach((n,i)=>{
+    let eq;try{eq=makeEquipment(n.type,p,n);}catch(e){console.error(e);return;}
+    const mount=eq.userData.mount,baseY=mount==="floor"?0:n.z;
+    eq.position.copy(T(n.x,n.y,baseY));eq.rotation.y=-(n.rot||0)*Math.PI/180;
+    if(!n.on)eq.traverse(o=>{if(o.material){o.material.transparent=true;o.material.opacity=.3;o.material.depthWrite=false;}});
+    g.add(eq);
+    const fp=EQUIP_FP[n.type]||EQUIP_FP.custom,fr=fp[2]==="circle"?fp[0]/2+.2:Math.hypot(fp[0],fp[1])/2+.15;
+    if(n.on&&mount==="floor"){const ring=new THREE.Mesh(new THREE.RingGeometry(fr,fr+.08,48),new THREE.MeshBasicMaterial({color:noiseC3,side:THREE.DoubleSide,transparent:true,opacity:.75}));
+      ring.rotation.x=-Math.PI/2;ring.position.copy(T(n.x,n.y,.03));g.add(ring);}
+    const top=mount==="floor"?eq.userData.h:n.z+eq.userData.above;
+    const sp=numSprite("N"+(i+1),false,css("--noise"));sp.position.copy(T(n.x,n.y,top+.55));if(!n.on)sp.material.opacity=.45;g.add(sp);
+  });
+  G.qs.forEach((q,i)=>{
+    const sel=i===S.sel,dim=S.solo>=0&&S.solo!==i;
+    const dir=new THREE.Vector3(q.d.x,q.d.z,q.d.y).normalize(),pos=T(q.x,q.y,q.z);
+    const isHorn=getModel(q.s.model).disp<180;
+    const geo=isHorn?new THREE.ConeGeometry(0.34,0.7,24,1,true):new THREE.CylinderGeometry(0.28,0.28,0.18,24);
+    const mat=new THREE.MeshLambertMaterial({color:sel?new THREE.Color("#111"):acc,side:THREE.DoubleSide,transparent:dim,opacity:dim?.35:1});
+    const m=new THREE.Mesh(geo,mat);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,-1,0),dir);m.position.copy(pos);g.add(m);
+    const drop=new THREE.BufferGeometry().setFromPoints([pos,T(q.x,q.y,p.ear)]);
+    g.add(new THREE.Line(drop,new THREE.LineBasicMaterial({color:acc,transparent:true,opacity:dim?.15:.45})));
+    const aimPts=[pos,pos.clone().add(dir.clone().multiplyScalar(2.2))];
+    g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(aimPts),new THREE.LineBasicMaterial({color:acc,transparent:true,opacity:dim?.2:.8})));
+    const sp=numSprite(i+1,sel);sp.position.copy(pos).add(new THREE.Vector3(0,0.75,0));if(dim)sp.material.opacity=.4;g.add(sp);
+  });
+  if(S.probe){
+    const pp=T(S.probe.x,S.probe.y,p.ear);
+    const ring=new THREE.Mesh(new THREE.RingGeometry(0.35,0.5,32),new THREE.MeshBasicMaterial({color:0x111111,side:THREE.DoubleSide}));
+    ring.rotation.x=-Math.PI/2;ring.position.copy(pp).add(new THREE.Vector3(0,0.02,0));g.add(ring);
+    g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([T(S.probe.x,S.probe.y,0),T(S.probe.x,S.probe.y,p.ear+1.2)]),new THREE.LineBasicMaterial({color:0x111111})));
+  }
+  const key=[p.L,p.W,p.apex].join("|");
+  if(refit||key!==R3.key){R3.key=key;fitCam();}
+  render3D();
+}
+$("resetCam").addEventListener("click",()=>{if(R3){fitCam();render3D();}});
+
+let pend=0,needCompute=false,needFit=false;
+function schedule(recompute,refit){needCompute=needCompute||!!recompute||!G;needFit=needFit||!!refit;if(pend)return;pend=requestAnimationFrame(run);}
+function run(){
+  pend=0;if(needCompute){compute();needCompute=false;}
+  paintHeat();drawPlan();renderSummary();renderProbe();build3D(needFit);needFit=false;
+}
+function themeRefresh(){if(G){drawPlan();build3D(false);}}
+try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",themeRefresh);}catch(e){}
+new MutationObserver(themeRefresh).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+new ResizeObserver(()=>{if(G)drawPlan();}).observe($("planWrap"));
+
+const INPUT_IDS=["rpProject","rpArea","rpBy","rpRef","rpRev","rpNotes","L","W","ceilType","ceilH","eave","apex","ridgeDir","monoLo","monoHi","monoDir","ear","amb","rackOri","rackN","rackD","rackH","rackEnd","shadow","reverb","alpha","gModel","gTap","cSens","cDisp","gRows","gSp","gZ","gStag","gAim","gTilt"];
+function snapshotDesign(){
+  const inputs={};INPUT_IDS.forEach(id=>{const el=$(id);if(el)inputs[id]=el.type==="checkbox"?el.checked:el.value;});
+  return {app:"EWIS Speaker Coverage",version:1,saved:new Date().toISOString(),inputs,floor:S.floor,speakers:S.speakers,walls:S.walls,doors:S.doors,racks:S.racks,noise:S.noise};
+}
+function designMsg(t){const m=$("designMsg");if(!m)return;m.textContent=t;setTimeout(()=>{if(m.textContent===t)m.textContent="";},4000);}
+window.loadDesign=function(d){
+  if(!d||typeof d!=="object"||!Array.isArray(d.speakers)){designMsg("That file isn't an EWIS coverage design.");return;}
+  const inp=d.inputs||{};
+  INPUT_IDS.forEach(id=>{if(!(id in inp))return;const el=$(id);if(!el)return;if(el.type==="checkbox")el.checked=!!inp[id];else el.value=inp[id];if(id==="gModel")fillGen();});
+  const arr=a=>Array.isArray(a)?a:[];
+  S.speakers=d.speakers;S.walls=arr(d.walls);S.doors=arr(d.doors);S.racks=arr(d.racks);S.noise=arr(d.noise);S.floor=arr(d.floor);S.sel=-1;S.solo=-1;updateCeilUI();
+  renderTable();renderFloor();renderWalls();renderDoors();renderRacks();renderNoise();compute();
+  const k=G.stats.mnI;S.probe=k>=0?{x:(k%G.nx+.5)*G.dx,y:(Math.floor(k/G.nx)+.5)*G.dy}:null;
+  schedule(true,true);designMsg("Design opened.");
+};
+function designFileName(){return "EWIS coverage design "+new Date().toISOString().slice(0,10)+".json";}
+async function saveDesign(){
+  const json=JSON.stringify(snapshotDesign(),null,2);
+  if(NATIVE){NATIVE.postMessage({type:"save",json});return;}
+  if(window.claude&&typeof window.claude.use==="function"){
+    let dl=null;try{dl=await window.claude.use("downloads");}catch(_){dl=null;}
+    if(dl){
+      try{await dl.save({filename:designFileName(),data:json});designMsg("Design saved.");}
+      catch(e){const c=e&&e.code;
+        if(c==="declined")designMsg("Save cancelled.");
+        else if(c==="rate_limited")designMsg("A save prompt is already open.");
+        else copyDesign(json);}
+      return;
+    }
+    copyDesign(json);return;
+  }
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([json],{type:"application/json"}));
+  a.download=designFileName();document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);designMsg("Design saved to your Downloads folder.");
+}
+function copyDesign(json){
+  try{navigator.clipboard.writeText(json).then(()=>designMsg("Saving files isn't available here, so the design was copied. Paste it into a .json file."),()=>designMsg("Saving isn't available in this view."));}
+  catch(_){designMsg("Saving isn't available in this view.");}
+}
+function readDesignFile(file){
+  if(!file)return;
+  file.text().then(t=>{let d;try{d=JSON.parse(t);}catch(_){designMsg("That file isn't an EWIS coverage design.");return;}window.loadDesign(d);})
+    .catch(()=>designMsg("That file couldn't be read."));
+}
+$("saveDesign").addEventListener("click",saveDesign);
+$("openDesign").addEventListener("click",()=>{if(NATIVE)NATIVE.postMessage({type:"open"});else{$("openFile").value="";$("openFile").click();}});
+$("openFile").addEventListener("change",e=>readDesignFile(e.target.files&&e.target.files[0]));
+document.addEventListener("dragover",e=>{if(e.dataTransfer&&[...e.dataTransfer.types].includes("Files"))e.preventDefault();});
+document.addEventListener("drop",e=>{const f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];if(!f)return;e.preventDefault();if(/\.json$/i.test(f.name)||f.type==="application/json")readDesignFile(f);else designMsg("Drop a .json design file to open it.");});
+
+function vNeighbour(el,dir){
+  const td=el.closest("td");
+  if(td){const tr=td.parentElement,rows=[...tr.parentElement.rows],col=td.cellIndex;let i=rows.indexOf(tr)+dir;
+    while(i>=0&&i<rows.length){const c=rows[i].cells[col],f=c&&c.querySelector('input:not([disabled]):not([type=checkbox]),select:not([disabled])');if(f)return f;i+=dir;}
+    return null;}
+  const aside=el.closest("aside");
+  if(aside){const list=[...aside.querySelectorAll('input[type=number]:not([disabled]),input[type=text]:not([disabled]),select:not([disabled])')].filter(x=>x.offsetParent!==null);return list[list.indexOf(el)+dir]||null;}
+  return null;
+}
+document.addEventListener("keydown",e=>{
+  const el=e.target;if(!(el instanceof HTMLInputElement)&&!(el instanceof HTMLSelectElement))return;
+  const up=e.key==="ArrowUp",down=e.key==="ArrowDown",enter=e.key==="Enter";if(!up&&!down&&!enter)return;
+  const isNum=el instanceof HTMLInputElement&&el.type==="number",isText=el instanceof HTMLInputElement&&el.type==="text";
+  if(!isNum&&!isText&&!enter)return;
+  if((up||down)&&e.altKey&&isNum){
+    e.preventDefault();const st=parseFloat(el.step)||1,mult=e.shiftKey?10:1;
+    let v=(parseFloat(el.value)||0)+(up?1:-1)*st*mult;
+    if(el.min!==""&&v<parseFloat(el.min))v=parseFloat(el.min);if(el.max!==""&&v>parseFloat(el.max))v=parseFloat(el.max);
+    el.value=String(+v.toFixed(4));el.dispatchEvent(new Event("input",{bubbles:true}));el.dispatchEvent(new Event("change",{bubbles:true}));return;
+  }
+  const dir=(up||(enter&&e.shiftKey))?-1:1,t=vNeighbour(el,dir);
+  if(t){e.preventDefault();el.dispatchEvent(new Event("change",{bubbles:true}));t.focus();if(t.select)t.select();}
+  else if(enter){e.preventDefault();el.dispatchEvent(new Event("change",{bubbles:true}));}
+});
+
+/* ---------- PDF report ---------- */
+const HELV=[278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,278,278,584,584,584,556,1015,667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611,278,278,278,469,556,333,556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500,334,260,334,584];
+const HELVB=[278,333,474,556,556,889,722,238,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,333,333,584,584,584,611,975,722,722,722,722,667,611,778,722,278,556,722,611,833,722,778,667,778,722,667,611,722,667,944,667,667,611,333,278,333,584,556,333,556,611,556,611,556,333,611,611,278,278,556,278,889,611,611,611,611,389,556,333,611,556,778,556,556,500,389,280,389,584];
+const XW={0x96:556,0x97:1000,0x85:1000,0x91:222,0x92:222,0x93:333,0x94:333,0x95:350,0xB0:400,0xB7:278,0xB2:333,0xB3:333,0xD7:584,0xB1:584,0xA0:278};
+const WA={"–":"\x96","—":"\x97","…":"\x85","‘":"\x91","’":"\x92","“":"\x93","”":"\x94","•":"\x95","≥":">=","≤":"<=","−":"-","→":"->","α":"a","≈":"~","↑":"up","↓":"down"};
+function pdfEnc(str){let o="";for(const ch of String(str)){if(WA[ch]!==undefined)o+=WA[ch];else{const c=ch.charCodeAt(0);o+=c<=255?ch:"?";}}return o;}
+function pdfEsc(t){return t.replace(/\\/g,"\\\\").replace(/\(/g,"\\(").replace(/\)/g,"\\)").replace(/[\r\n]/g," ");}
+const pf=n=>String(Math.round(n*100)/100);
+function PDF(){this.W=595.28;this.H=841.89;this.pages=[];this.imgs=[];this.pg=null;}
+PDF.prototype.add=function(){this.pg={ops:[]};this.pages.push(this.pg);return this.pg;};
+PDF.prototype.o=function(s){this.pg.ops.push(s);};
+PDF.prototype.tw=function(str,size,bold){const t=pdfEnc(str),tb=bold?HELVB:HELV;let w=0;for(let i=0;i<t.length;i++){const c=t.charCodeAt(i);w+=(c>=32&&c<=126)?tb[c-32]:(XW[c]||556);}return w*size/1000;};
+PDF.prototype.text=function(x,y,str,o){o=o||{};const size=o.size||10,bold=!!o.bold,c=o.color||[0.09,0.13,0.14],w=this.tw(str,size,bold);
+  const tx=o.align==="right"?x-w:o.align==="center"?x-w/2:x;
+  this.o("BT /"+(bold?"F2":"F1")+" "+pf(size)+" Tf "+c.map(pf).join(" ")+" rg "+pf(tx)+" "+pf(this.H-y)+" Td ("+pdfEsc(pdfEnc(str))+") Tj ET");return w;};
+PDF.prototype.wrap=function(str,maxW,size,bold){
+  const out=[];String(str).split("\n").forEach(par=>{const words=par.split(/ +/);let line="";
+    words.forEach(wd=>{const t=line?line+" "+wd:wd;if(this.tw(t,size,bold)<=maxW||!line)line=t;else{out.push(line);line=wd;}});out.push(line);});
+  return out;};
+PDF.prototype.rect=function(x,y,w,h,o){o=o||{};let s="";if(o.fill)s+=o.fill.map(pf).join(" ")+" rg ";if(o.stroke)s+=o.stroke.map(pf).join(" ")+" RG "+pf(o.lw||0.5)+" w ";
+  s+=pf(x)+" "+pf(this.H-y-h)+" "+pf(w)+" "+pf(h)+" re "+(o.fill&&o.stroke?"B":o.fill?"f":"S");this.o(s);};
+PDF.prototype.line=function(x1,y1,x2,y2,c,lw){this.o((c||[0,0,0]).map(pf).join(" ")+" RG "+pf(lw||0.5)+" w "+pf(x1)+" "+pf(this.H-y1)+" m "+pf(x2)+" "+pf(this.H-y2)+" l S");};
+PDF.prototype.image=function(img,x,y,w,h){const data=atob(img.url.split(",")[1]);this.imgs.push({data,pw:img.w,ph:img.h});
+  this.o("q "+pf(w)+" 0 0 "+pf(h)+" "+pf(x)+" "+pf(this.H-y-h)+" cm /Im"+(this.imgs.length-1)+" Do Q");};
+PDF.prototype.output=function(info){
+  const obj=[],imgIds=[],pageIds=[];let id=5;
+  this.imgs.forEach(()=>imgIds.push(id++));this.pages.forEach(()=>{pageIds.push([id,id+1]);id+=2;});const infoId=id;
+  obj[1]="<< /Type /Catalog /Pages 2 0 R >>";
+  obj[2]="<< /Type /Pages /Kids ["+pageIds.map(p=>p[0]+" 0 R").join(" ")+"] /Count "+pageIds.length+" >>";
+  obj[3]="<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>";
+  obj[4]="<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>";
+  this.imgs.forEach((im,i)=>{obj[imgIds[i]]="<< /Type /XObject /Subtype /Image /Width "+im.pw+" /Height "+im.ph+" /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length "+im.data.length+" >>\nstream\n"+im.data+"\nendstream";});
+  const xo=this.imgs.map((_,i)=>"/Im"+i+" "+imgIds[i]+" 0 R").join(" ");
+  this.pages.forEach((pg,i)=>{const cs=pg.ops.join("\n");
+    obj[pageIds[i][0]]="<< /Type /Page /Parent 2 0 R /MediaBox [0 0 "+pf(this.W)+" "+pf(this.H)+"] /Resources << /Font << /F1 3 0 R /F2 4 0 R >>"+(xo?" /XObject << "+xo+" >>":"")+" >> /Contents "+pageIds[i][1]+" 0 R >>";
+    obj[pageIds[i][1]]="<< /Length "+cs.length+" >>\nstream\n"+cs+"\nendstream";});
+  const d=new Date(),z=n=>String(n).padStart(2,"0");
+  obj[infoId]="<< /Title ("+pdfEsc(pdfEnc(info.title||""))+") /Author ("+pdfEsc(pdfEnc(info.author||""))+") /Producer (EWIS Speaker Coverage) /CreationDate (D:"+d.getFullYear()+z(d.getMonth()+1)+z(d.getDate())+z(d.getHours())+z(d.getMinutes())+z(d.getSeconds())+") >>";
+  let out="%PDF-1.4\n%\xE2\xE3\xCF\xD3\n";const off=[];
+  for(let i=1;i<=infoId;i++){off[i]=out.length;out+=i+" 0 obj\n"+obj[i]+"\nendobj\n";}
+  const xs=out.length;out+="xref\n0 "+(infoId+1)+"\n0000000000 65535 f \n";
+  for(let i=1;i<=infoId;i++)out+=String(off[i]).padStart(10,"0")+" 00000 n \n";
+  out+="trailer\n<< /Size "+(infoId+1)+" /Root 1 0 R /Info "+infoId+" 0 R >>\nstartxref\n"+xs+"\n%%EOF\n";
+  const bytes=new Uint8Array(out.length);for(let i=0;i<out.length;i++)bytes[i]=out.charCodeAt(i)&255;return bytes;
+};
+
+function planImage(mode,marker){
+  const old=S.mode;S.mode=mode;paintHeat();const heat=heatCanvas;S.mode=old;
+  const cv=document.createElement("canvas");
+  drawPlan({canvas:cv,ctx:cv.getContext("2d"),w:720,dpr:2.5,heat,marker});
+  return {url:cv.toDataURL("image/jpeg",0.92),w:cv.width,h:cv.height};
+}
+function threeImage(){
+  if(!R3)return null;
+  try{render3D();const cv=R3.renderer.domElement;if(!cv.width||!cv.height)return null;
+    const tmp=document.createElement("canvas");tmp.width=cv.width;tmp.height=cv.height;const t=tmp.getContext("2d");
+    t.fillStyle="#fff";t.fillRect(0,0,tmp.width,tmp.height);t.drawImage(cv,0,0);
+    return {url:tmp.toDataURL("image/jpeg",0.9),w:tmp.width,h:tmp.height};}catch(e){return null;}
+}
+function rv(id){const el=$(id);return el?String(el.value||"").trim():"";}
+function reportFileName(){
+  const proj=(rv("rpProject")||"EWIS coverage").replace(/[\\/:*?"<>|]+/g,"-").slice(0,80);
+  const ref=rv("rpRef")?(" "+rv("rpRef").replace(/[\\/:*?"<>|]+/g,"-")):"";
+  const rev=rv("rpRev")?(" Rev "+rv("rpRev").replace(/[\\/:*?"<>|]+/g,"-")):"";
+  return proj+ref+rev+" - EWIS coverage report.pdf";
+}
+
+function buildReportPDF(){
+  const p=G.p,st=G.stats,now=new Date();
+  const R={project:rv("rpProject")||"Untitled project",area:rv("rpArea"),by:rv("rpBy"),ref:rv("rpRef"),rev:rv("rpRev"),notes:rv("rpNotes")};
+  const date=now.toLocaleDateString("en-AU",{day:"numeric",month:"long",year:"numeric"});
+  const doc=new PDF(),M=42,CW=doc.W-2*M,BOTTOM=doc.H-56;
+  const INK=[.09,.13,.14],MUTED=[.35,.4,.42],ACC=[.76,.16,.12],LINE=[.82,.85,.85],SOFT=[.95,.96,.955],OK=[.16,.52,.31],BAD=[.71,.14,.09],WARN=[.6,.39,.08];
+  let y=0,sec=0,fig=0;
+  const newPage=()=>{doc.add();y=48;};
+  const need=h=>{if(y+h>BOTTOM)newPage();};
+  const h2=t=>{need(56);y+=10;sec++;doc.text(M,y+12,sec+"  "+t,{size:13,bold:true});y+=19;doc.line(M,y,M+CW,y,LINE,0.8);y+=8;};
+  const h3=t=>{need(40);y+=4;doc.text(M,y+10,t,{size:10,bold:true});y+=16;};
+  const para=(t,o)=>{o=o||{};const size=o.size||9.2,ind=o.indent||0;doc.wrap(t,CW-ind,size,o.bold).forEach(l=>{need(size*1.45);y+=size*1.45;doc.text(M+ind,y,l,{size,color:o.color||INK,bold:o.bold});});y+=o.after==null?5:o.after;};
+  const bullet=t=>{const size=9.2,lines=doc.wrap(t,CW-12,size,false);lines.forEach((l,i)=>{need(size*1.45);y+=size*1.45;if(!i)doc.text(M+2,y,"•",{size,color:MUTED});doc.text(M+12,y,l,{size});});y+=2;};
+  const table=(cols,rows,o)=>{o=o||{};const size=o.size||8.4,rh=size*1.8,tot=cols.reduce((a,c)=>a+c.w,0),ws=cols.map(c=>c.w*CW/tot);
+    const cx=(i,x)=>cols[i].align==="right"?x+ws[i]-5:x+5;
+    const header=()=>{doc.rect(M,y,CW,rh,{fill:SOFT});let x=M;cols.forEach((c,i)=>{doc.text(cx(i,x),y+rh*0.66,c.h,{size:size-0.4,bold:true,color:MUTED,align:c.align==="right"?"right":"left"});x+=ws[i];});y+=rh;};
+    need(rh*2.2);header();
+    rows.forEach((r,ri)=>{const cells=r.map((v,i)=>doc.wrap(v==null?"":String(v),ws[i]-10,size,false));
+      const n=Math.max(1,...cells.map(c=>c.length)),hh=rh+(n-1)*size*1.25;
+      if(y+hh>BOTTOM){newPage();header();}
+      let x=M;cells.forEach((ls,i)=>{const col=o.color?o.color(ri,i):null,bold=o.bold?o.bold(ri,i):false;
+        ls.forEach((l,k)=>doc.text(cx(i,x),y+rh*0.66+k*size*1.25,l,{size,color:col||INK,bold,align:cols[i].align==="right"?"right":"left"}));x+=ws[i];});
+      y+=hh;doc.line(M,y,M+CW,y,LINE,0.4);});
+    y+=10;};
+  const figure=(img,caption,legend)=>{if(!img)return;const w=CW,h=w*img.h/img.w;need(h+(legend?44:26));
+    doc.image(img,M,y,w,h);doc.rect(M,y,w,h,{stroke:LINE,lw:0.6});y+=h+6;if(legend)legend();fig++;
+    doc.wrap("Figure "+fig+". "+caption,CW,8.4,false).forEach(l=>{y+=11;doc.text(M,y,l,{size:8.4,color:MUTED});});y+=12;};
+  const gradLegend=(fn,lo,hi,ticks,unit)=>()=>{const x0=M,wd=220,n=110,seg=wd/n;
+    for(let i=0;i<n;i++){const c=fn(lo+(hi-lo)*(i+.5)/n).map(v=>v/255);doc.rect(x0+i*seg,y,seg+0.3,7,{fill:c});}
+    ticks.forEach(t=>{const tx=x0+wd*(t-lo)/(hi-lo);doc.line(tx,y+7,tx,y+10,MUTED,0.4);doc.text(tx,y+18,(t>0&&unit==="margin"?"+":"")+t,{size:7,color:MUTED,align:"center"});});
+    doc.text(x0+wd+10,y+7,unit==="margin"?"dB over the local target":"dB(A)",{size:7.5,color:MUTED});y+=20;};
+
+  const load=S.speakers.reduce((a,sp)=>a+sp.tap,0);
+  const kx=k=>(k%G.nx+.5)*G.dx,ky=k=>(Math.floor(k/G.nx)+.5)*G.dy;
+  const worst=st.mnI>=0?{x:kx(st.mnI),y:ky(st.mnI)}:null;
+  const onNoise=S.noise.filter(n=>n.on);
+  let ambMax=-Infinity;for(let k=0;k<G.am.length;k++)if(!G.rk[k]&&G.am[k]>ambMax)ambMax=G.am[k];
+  const tgt=Math.abs(st.rqMax-st.rqMin)<0.5?fmt(st.rqMin,0)+" dB(A)":fmt(st.rqMin,0)+" to "+fmt(st.rqMax,0)+" dB(A)";
+  const verdict=!S.speakers.length?["NO SPEAKERS",BAD]:(st.passPct>=99.95&&st.overPct===0)?["MEETS TARGET",OK]:(st.passPct>=95&&st.overPct===0)?["MARGINAL",WARN]:["DOES NOT MEET TARGET",BAD];
+
+  /* ---- page 1 ---- */
+  newPage();
+  doc.rect(0,0,doc.W,5,{fill:ACC});
+  doc.text(M,y,"EWIS SPEAKER COVERAGE REPORT",{size:8.5,bold:true,color:ACC});y+=24;
+  doc.wrap(R.project,CW,19,true).forEach(l=>{doc.text(M,y,l,{size:19,bold:true});y+=22;});
+  if(R.area){doc.text(M,y,R.area,{size:11.5,color:MUTED});y+=16;}
+  y+=6;const meta=[["Document",R.ref||"–"],["Revision",R.rev||"–"],["Date",date],["Prepared by",R.by||"–"]],mw=CW/4;
+  meta.forEach(([k,v],i)=>{doc.text(M+i*mw,y+8,k.toUpperCase(),{size:6.8,bold:true,color:MUTED});doc.wrap(v,mw-10,9.2,false).slice(0,2).forEach((l,j)=>doc.text(M+i*mw,y+21+j*11,l,{size:9.2}));});
+  y+=40;doc.line(M,y,M+CW,y,LINE,0.8);y+=14;
+  const PH=118;doc.rect(M,y,CW,PH,{fill:SOFT});
+  doc.text(M+14,y+20,"RESULT",{size:7.5,bold:true,color:MUTED});
+  doc.text(M+14,y+42,verdict[0],{size:17,bold:true,color:verdict[1]});
+  doc.text(M+CW-14,y+42,fmt(st.passPct,1)+"% of the floor area meets its target",{size:9.5,align:"right"});
+  const kv=[["Target at ear height",tgt],["Worst margin",(st.wm>=0?"+":"")+fmt(st.wm)+" dB"],["Maximum alarm level",fmt(st.mx)+" dB(A)"],
+    ["Speakers",S.speakers.length+" speakers, "+fmt(load,2)+" W"],["Amplifier allowance","≥ "+Math.ceil(load*1.25)+" W (25% spare)"],["RT60 estimate",fmt(G.RT,1)+" s (Sabine)"]];
+  const c3=(CW-28)/3;kv.forEach(([k,v],i)=>{const x=M+14+(i%3)*c3,yy=y+66+Math.floor(i/3)*28;doc.text(x,yy,k,{size:7.6,color:MUTED});doc.text(x,yy+13,v,{size:10.2,bold:true});});
+  y+=PH+6;
+  if(R.notes)para("Note: "+R.notes,{color:MUTED,size:9});
+
+  h2("Compliance checks");
+  const chk=[
+    ["Alarm level at ear height reaches the local target everywhere (AS 1670.1: the higher of 65 dB(A) or ambient + 10 dB)",fmt(st.passPct,1)+"% of area; worst margin "+(st.wm>=0?"+":"")+fmt(st.wm)+" dB",st.passPct>=99.95?"PASS":"FAIL"],
+    ["Alarm level does not exceed 105 dB(A)","Maximum "+fmt(st.mx)+" dB(A)",st.overPct===0?"PASS":"FAIL"],
+    ["Ambient at or below 95 dB(A), so audible alarms can work (above that, visual warning devices are required)","Highest ambient "+fmt(ambMax)+" dB(A)",st.visPct>0?"VISUAL DEVICES NEEDED":"OK"],
+    ["Speech intelligibility, STI ≥ 0.5 (AS 1670.4)","Not assessed by this tool","VERIFY SEPARATELY"]];
+  table([{h:"Check",w:52},{h:"Result",w:28},{h:"Status",w:20}],chk,{color:(r,i)=>i===2?(/PASS|^OK/.test(chk[r][2])?OK:/VERIFY/.test(chk[r][2])?WARN:BAD):null,bold:(r,i)=>i===2});
+
+  h2("Design basis");
+  const FB=p.F.bbox;
+  const basis=[
+    ["Floor",p.F.custom?"Sketched outline ("+S.floor.length+" shape"+(S.floor.length===1?"":"s")+"), extents "+fmt(FB.x1-FB.x0,2)+" × "+fmt(FB.y1-FB.y0,2)+" m":"Rectangular, "+fmt(p.L,2)+" m × "+fmt(p.W,3)+" m"],
+    ["Ceiling",ceilDesc(p)],
+    ["Floor area and volume",fmt(p.F.area,0)+" m², "+Math.round(G.V)+" m³"],
+    ["Assessment height",fmt(p.ear,2)+" m above floor level; grid "+fmt(G.dx,2)+" × "+fmt(G.dy,2)+" m"],
+    ["Background noise",fmt(p.amb,0)+" dB(A)"+(onNoise.length?" plus "+onNoise.length+" running noise source"+(onNoise.length>1?"s":""):"")],
+    ["Audibility criteria","Target is the higher of 65 dB(A) or local ambient + 10 dB; maximum 105 dB(A) (AS 1670.1)"],
+    ["Storage racks",S.racks.length?S.racks.length+" racks, "+fmt(Math.max(...S.racks.map(r=>r.h)),1)+" m high; "+fmt(p.shadow,0)+" dB loss where the path passes through a rack":"None"],
+    ["Internal walls and doors",S.walls.length+" internal wall"+(S.walls.length===1?"":"s")+", "+S.doors.length+" door"+(S.doors.length===1?"":"s")],
+    ["Reverberant field",p.reverb?"Included (Sabine), mean absorption "+fmt(p.alpha,2):"Not included (direct sound only, conservative); mean absorption "+fmt(p.alpha,2)+" used for RT60"]];
+  table([{h:"Item",w:28},{h:"Basis",w:72}],basis);
+
+  /* ---- figures ---- */
+  h2("Coverage plans");
+  para("Plans are at "+fmt(p.ear,2)+" m above floor level. X runs along the length and Y across the width, with the origin at the top-left corner. Red circles are speakers (arrows show aim), purple diamonds are noise sources, hatched areas are racks, orange bars are doors. The crosshair marks the worst point."+(p.F.custom?" The heavy line is the floor outline with its edge lengths; the lightly hatched area is outside the floor.":""),{color:MUTED,size:8.6});
+  figure(planImage("level",worst),"Alarm sound pressure level at ear height, dB(A).",gradLegend(lvlColor,45,115,[45,55,65,75,85,95,105,115],"level"));
+  figure(planImage("margin",worst),"Margin of the alarm level over the local target (dB). Red is below target, green has margin.",gradLegend(marginColor,-10,15,[-10,-5,0,5,10,15],"margin"));
+  if(onNoise.length)figure(planImage("noise",worst),"Ambient noise at ear height from background noise and running noise sources, dB(A).",gradLegend(lvlColor,45,115,[45,55,65,75,85,95,105,115],"level"));
+  const t3=threeImage();if(t3)figure(t3,"3D model as shown in the tool at the time of the report.");
+
+  /* ---- schedules ---- */
+  h2("Speaker schedule");
+  table([{h:"No.",w:6},{h:"Model",w:34},{h:"Tap W",w:9,align:"right"},{h:"X m",w:9,align:"right"},{h:"Y m",w:9,align:"right"},{h:"Height m",w:11,align:"right"},{h:"Aim °",w:9,align:"right"},{h:"Tilt °",w:9,align:"right"}],
+    S.speakers.map((sp,i)=>[i+1,getModel(sp.model).name,sp.tap,fmt(sp.x,2),fmt(sp.y,2),fmt(sp.z,2),fmt(sp.yaw,0),fmt(sp.tilt,0)]));
+  para("Total tap load "+fmt(load,2)+" W. Allow an amplifier channel of at least "+Math.ceil(load*1.25)+" W (25% spare). Sensitivities are from the Vigilant Warning System Ancillaries: Audio datasheet (Feb 2019).",{size:8.6,color:MUTED});
+  if(S.noise.length){h2("Noise sources");
+    table([{h:"No.",w:6},{h:"Source",w:32},{h:"X m",w:10,align:"right"},{h:"Y m",w:10,align:"right"},{h:"Height m",w:11,align:"right"},{h:"Rot. °",w:9,align:"right"},{h:"dB(A) at 1 m",w:13,align:"right"},{h:"Running",w:9}],
+      S.noise.map((n,i)=>["N"+(i+1),n.name,fmt(n.x,2),fmt(n.y,2),fmt(n.z,2),fmt(n.rot||0,0),fmt(n.lp,0),n.on?"Yes":"No"]));
+    para("Levels are the values entered in the tool. Check them against the manufacturer's data or site measurements.",{size:8.6,color:MUTED});}
+  if(S.walls.length||S.doors.length||S.racks.length){h2("Walls, doors and racks");
+    if(S.walls.length){h3("Internal walls");table([{h:"No.",w:8},{h:"From (X, Y) m",w:22},{h:"To (X, Y) m",w:22},{h:"Height",w:22},{h:"Reduction dB",w:16,align:"right"}],
+      S.walls.map((w,i)=>["W"+(i+1),fmt(w.x1,2)+", "+fmt(w.y1,2),fmt(w.x2,2)+", "+fmt(w.y2,2),w.full?"Full height to roof":fmt(w.h,2)+" m",fmt(w.tl,0)]));}
+    if(S.doors.length){h3("Doors");table([{h:"No.",w:7},{h:"Wall",w:22},{h:"Type",w:18},{h:"From start m",w:13,align:"right"},{h:"W × H m",w:15,align:"right"},{h:"State",w:10},{h:"Closed dB",w:11,align:"right"}],
+      S.doors.map((d,i)=>["D"+(i+1),hostName(d.host),DOOR_T[d.type]?DOOR_T[d.type].name:d.type,fmt(d.off,2),fmt(d.w,2)+" × "+fmt(d.h,2),(d.type==="opening"||d.open)?"Open":"Closed",d.type==="opening"?"–":fmt(d.tl,0)]));}
+    if(S.racks.length){h3("Storage racks");table([{h:"No.",w:10},{h:"X m",w:15,align:"right"},{h:"Y m",w:15,align:"right"},{h:"Length (X) m",w:20,align:"right"},{h:"Depth (Y) m",w:20,align:"right"},{h:"Height m",w:20,align:"right"}],
+      S.racks.map((r,i)=>["R"+(i+1),fmt(r.x,2),fmt(r.y,2),fmt(r.l,2),fmt(r.d,2),fmt(r.h,2)]));}
+  }
+
+  /* ---- worst point ---- */
+  if(worst){h2("Worst point");
+    const pr=probeAt(worst.x,worst.y),ab=ambientAt(worst.x,worst.y);
+    para("At X "+fmt(worst.x,2)+" m, Y "+fmt(worst.y,2)+" m: alarm level "+fmt(pr.total)+" dB(A), local ambient "+fmt(ab.amb)+" dB(A), target "+fmt(ab.req)+" dB(A), margin "+(pr.total-ab.req>=0?"+":"")+fmt(pr.total-ab.req)+" dB.",{bold:true,size:9.4});
+    const rows=pr.rows.slice().sort((a,b)=>b.lvl-a.lvl).slice(0,10);
+    table([{h:"Speaker",w:12},{h:"Distance m",w:15,align:"right"},{h:"Off-axis",w:20,align:"right"},{h:"Path",w:33},{h:"dB(A)",w:20,align:"right"}],
+      rows.map(r=>{const parts=[];if(r.blk)parts.push("rack");if(r.wl.n)parts.push(r.wl.n>1?r.wl.n+" walls":"wall");if(r.wl.door)parts.push("door");if(r.out)parts.push("outside wall");
+        const loss=(r.blk?p.shadow:0)+r.wl.loss+(r.out?40:0);return [r.q.i+1,fmt(r.r),fmt(r.ang,0)+"° ("+fmt(r.off,1)+" dB)",parts.length?parts.join(" + ")+(loss>0?" (−"+fmt(loss,0)+" dB)":" (open)"):"Clear",fmt(r.lvl)];}));
+    if(ab.rows.length){h3("Noise at the worst point");
+      table([{h:"Source",w:40},{h:"Distance m",w:20,align:"right"},{h:"Path",w:20},{h:"dB(A)",w:20,align:"right"}],
+        ab.rows.slice().sort((a,b)=>b.lvl-a.lvl).slice(0,8).map(r=>{const parts=[];if(r.blk)parts.push("rack");if(r.wl.n)parts.push("wall");if(r.wl.door)parts.push("door");
+          return ["N"+(r.o.i+1)+" "+r.o.n.name,fmt(r.r),parts.length?parts.join(" + "):"Clear",fmt(r.lvl)];}));}
+  }
+
+  /* ---- method ---- */
+  h2("Method, assumptions and limitations");
+  [
+    "Each speaker's level is its sensitivity (1 W at 1 m) plus 10·log(tap watts), less inverse-square spreading (−20·log r). Speakers are summed on an energy basis.",
+    "Off-axis loss is approximated as −6 dB at half the quoted coverage angle, rising quadratically and capped at −25 dB. Where the datasheet gives a range of coverage angles, the average over 1 to 4 kHz is used.",
+    "Where the straight path from a speaker or noise source to the listener passes through a rack, the rack shadow loss is applied. Internal walls apply their sound reduction below their top edge. Closed doors apply their own reduction, and open doors none. Diffraction over and around obstacles is not modelled.",
+    "Noise sources spread at −6 dB per doubling of distance from the level entered at 1 m. Local ambient is the energy sum of the background noise and all running sources.",
+    p.reverb?"A diffuse reverberant field is included using the Sabine room constant R = Sα/(1−α). Open outside doors are treated as fully absorbing.":"The reverberant field is not included, which is conservative for audibility. The RT60 estimate uses Sabine's formula and is given for information.",
+    "Rack footprints are excluded from the area statistics because people are not assessed inside racking."+(p.F.custom?" Areas outside the sketched floor outline are not assessed, and any path that leaves the floor outline is treated as blocked by the outside wall (−40 dB).":""),
+    "This is a design-stage SPL screen. It does not predict speech intelligibility (STI) under AS 1670.4, and it does not replace acoustic modelling where required or measurement at commissioning. Confirm the current editions of AS 1670.1 and AS 1670.4 for the project."
+  ].forEach(bullet);
+
+  /* ---- footers ---- */
+  const N=doc.pages.length;
+  doc.pages.forEach((pg,i)=>{doc.pg=pg;doc.line(M,doc.H-38,M+CW,doc.H-38,LINE,0.6);
+    doc.text(M,doc.H-26,"EWIS speaker coverage · "+R.project+(R.ref?" · "+R.ref:"")+(R.rev?" Rev "+R.rev:""),{size:7.4,color:MUTED});
+    doc.text(M+CW,doc.H-26,"Page "+(i+1)+" of "+N,{size:7.4,color:MUTED,align:"right"});});
+  return doc.output({title:"EWIS speaker coverage report - "+R.project,author:R.by});
+}
+
+function bytesToB64(bytes){let s="";const CH=0x8000;for(let i=0;i<bytes.length;i+=CH)s+=String.fromCharCode.apply(null,bytes.subarray(i,i+CH));return btoa(s);}
+async function deliverPdf(bytes,filename){
+  if(NATIVE){NATIVE.postMessage({type:"savePdf",filename,base64:bytesToB64(bytes)});designMsg("Report created.");return;}
+  const blob=new Blob([bytes],{type:"application/pdf"});
+  if(window.claude&&typeof window.claude.use==="function"){
+    let dl=null;try{dl=await window.claude.use("downloads");}catch(_){dl=null;}
+    if(!dl){designMsg("Saving files isn't available in this view. Use the web or desktop version for PDF reports.");return;}
+    try{await dl.save({filename,data:blob});designMsg("Report saved.");}
+    catch(e){const c=e&&e.code;designMsg(c==="declined"?"Report not saved.":c==="rate_limited"?"A save prompt is already open.":"The report couldn't be saved here.");}
+    return;
+  }
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=filename;document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},2000);designMsg("Report saved to your Downloads folder.");
+}
+let reportBusy=false;
+async function createReport(){
+  if(reportBusy)return;
+  if(!S.speakers.length){designMsg("Add speakers before creating a report.");return;}
+  reportBusy=true;designMsg("Building the PDF report…");
+  await new Promise(r=>setTimeout(r,40));
+  const soloWas=S.solo,modeWas=S.mode;
+  try{
+    if(S.solo>=0){S.solo=-1;compute();}
+    const bytes=buildReportPDF();
+    await deliverPdf(bytes,reportFileName());
+  }catch(e){console.error(e);designMsg("The report couldn't be created: "+((e&&e.message)||e));}
+  finally{S.mode=modeWas;S.solo=soloWas;reportBusy=false;schedule(true);}
+}
+$("pdfBtn").addEventListener("click",createReport);
+$("pdfBtn2").addEventListener("click",createReport);
+window.__buildReportPDF=()=>{const was=S.solo;if(was>=0){S.solo=-1;compute();}const b=buildReportPDF();S.solo=was;schedule(true);return b;};
+
+init3D();
+(function(){const p=params();
+  S.doors=[{host:"P2",type:"roller",off:+(p.W/2-2).toFixed(2),w:4,h:4.5,open:false,tl:15},
+           {host:"P1",type:"personnel",off:3,w:0.92,h:2.04,open:false,tl:20}];})();
+generateRacks();
+S.noise=[{type:"comp",name:"Air compressor",x:38.2,y:1.4,z:1,rot:0,lp:85,on:true}];
+updateCeilUI();renderFloor();renderWalls();renderDoors();renderRacks();renderNoise();
+generate();
+compute();
+const k=G.stats.mnI;if(k>=0)S.probe={x:(k%G.nx+.5)*G.dx,y:(Math.floor(k/G.nx)+.5)*G.dy};
+schedule(true,true);
+})();
+</script>
+
+</body>
+</html>

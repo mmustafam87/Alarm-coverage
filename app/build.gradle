@@ -1,0 +1,42 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.ewis.coverage'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.ewis.coverage'
+        minSdk 26
+        targetSdk 34
+        versionCode 3
+        versionName '1.2'
+    }
+
+    // One fixed key for every build, so new versions install over old ones.
+    signingConfigs {
+        ewis {
+            storeFile file('ewis-signing.keystore')
+            storeType 'pkcs12'
+            storePassword 'ewiscoverage'
+            keyAlias 'ewis'
+            keyPassword 'ewiscoverage'
+        }
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.ewis
+        }
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.ewis
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
