@@ -7,8 +7,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      ANDROID_USER_HOME: ${{ github.workspace }}/.android-home
     steps:
       - uses: actions/checkout@v4
 
@@ -19,16 +17,12 @@ jobs:
           if [ -z "$F" ]; then echo "settings.gradle not found. Upload all the files from the EWIS Coverage Android folder."; exit 1; fi
           echo "dir=$(dirname "$F")" >> "$GITHUB_OUTPUT"
           echo "Project folder: $(dirname "$F")"
-
-      - name: Prepare writable Android settings folder
-        run: mkdir -p "$ANDROID_USER_HOME"
+          echo "Android SDK: $ANDROID_HOME"
 
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
-
-      - uses: android-actions/setup-android@v3
 
       - uses: gradle/actions/setup-gradle@v4
         with:
@@ -42,7 +36,12 @@ jobs:
 
       - name: Build APK
         working-directory: ${{ steps.proj.outputs.dir }}
-        run: gradle assembleDebug --no-daemon
+        env:
+          ANDROID_USER_HOME: ${{ runner.temp }}/android-user-home
+        run: |
+          mkdir -p "$ANDROID_USER_HOME"
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+          gradle assembleDebug --no-daemon
 
       - name: Collect APK
         run: cp "${{ steps.proj.outputs.dir }}/app/build/outputs/apk/debug/app-debug.apk" EWIS-Coverage.apk
