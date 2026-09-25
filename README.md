@@ -1,4 +1,4 @@
-# EWIS Coverage: Android tablet app
+# EWIS Coverage: Android tablet app 
 
 This is the full EWIS speaker coverage tool as an Android app (Android 8.0 or later), built for tablets. It includes the 3D model with equipment, plan heatmaps, speakers, racks, walls, doors, noise sources and PDF reports.
 
