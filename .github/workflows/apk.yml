@@ -26,14 +26,25 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: "8.7"
+          gradle-version: "8.13"
 
-      - name: Set package name to match Google Play (firify.engineering)
+      - name: Update app settings for Google Play
         working-directory: ${{ steps.proj.outputs.dir }}
         run: |
+          # Package name must match the Play Console app
           sed -i "s/applicationId '[^']*'/applicationId 'firify.engineering'/" app/build.gradle
-          echo "Package name now:"
-          grep "applicationId" app/build.gradle
+          # Play requires API 36
+          sed -i -E "s/compileSdk [0-9]+/compileSdk 36/; s/targetSdk [0-9]+/targetSdk 36/" app/build.gradle
+          # New version number (Play already has version 3)
+          sed -i -E "s/versionCode [0-9]+/versionCode 4/" app/build.gradle
+          # Newer Android build tools that support API 36
+          for f in build.gradle settings.gradle; do
+            [ -f "$f" ] && sed -i -E "s/(com\.android\.tools\.build:gradle:)[0-9.]+/\18.11.1/; s/(id ['\"]com\.android\.application['\"] version ['\"])[0-9.]+/\18.11.1/" "$f"
+          done
+          echo "---- app/build.gradle ----"
+          grep -E "applicationId|compileSdk|targetSdk|versionCode" app/build.gradle
+          echo "---- build tools ----"
+          grep -hE "com\.android" build.gradle settings.gradle 2>/dev/null || true
 
       - name: Bundle the 3D library so the app works offline
         working-directory: ${{ steps.proj.outputs.dir }}
