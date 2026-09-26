@@ -28,6 +28,13 @@ jobs:
         with:
           gradle-version: "8.7"
 
+      - name: Set package name to match Google Play (firify.engineering)
+        working-directory: ${{ steps.proj.outputs.dir }}
+        run: |
+          sed -i "s/applicationId '[^']*'/applicationId 'firify.engineering'/" app/build.gradle
+          echo "Package name now:"
+          grep "applicationId" app/build.gradle
+
       - name: Bundle the 3D library so the app works offline
         working-directory: ${{ steps.proj.outputs.dir }}
         run: |
