@@ -34,21 +34,30 @@ jobs:
           curl -fsSL -o app/src/main/assets/www/three.min.js https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
           curl -fsSL -o app/src/main/assets/www/OrbitControls.js https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js
 
-      - name: Build APK
+      - name: Build APK and Play Store bundle
         working-directory: ${{ steps.proj.outputs.dir }}
         env:
           ANDROID_USER_HOME: ${{ runner.temp }}/android-user-home
         run: |
           mkdir -p "$ANDROID_USER_HOME"
           echo "sdk.dir=$ANDROID_HOME" > local.properties
-          gradle assembleDebug --no-daemon
+          gradle assembleDebug bundleRelease --no-daemon
 
-      - name: Collect APK
-        run: cp "${{ steps.proj.outputs.dir }}/app/build/outputs/apk/debug/app-debug.apk" EWIS-Coverage.apk
+      - name: Collect files
+        run: |
+          cp "${{ steps.proj.outputs.dir }}/app/build/outputs/apk/debug/app-debug.apk" EWIS-Coverage.apk
+          cp "${{ steps.proj.outputs.dir }}/app/build/outputs/bundle/release/app-release.aab" EWIS-Coverage.aab
 
-      - name: Upload
+      - name: Upload APK (for installing directly on tablets)
         uses: actions/upload-artifact@v4
         with:
           name: EWIS-Coverage-Android
           path: EWIS-Coverage.apk
+          if-no-files-found: error
+
+      - name: Upload AAB (for Google Play)
+        uses: actions/upload-artifact@v4
+        with:
+          name: EWIS-Coverage-PlayStore
+          path: EWIS-Coverage.aab
           if-no-files-found: error
